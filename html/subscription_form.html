@@ -1,0 +1,20 @@
+
+<body>
+<form>
+    <label for="host">Host:</label>
+    <input type="url" name="host" id="host"
+           placeholder="http://155.54.95.248"
+           pattern="http://.*" size="30"
+           required>
+    <br>
+    <label for="port">Port:</label>
+    <input type="number" id="port" name="port" required min="0" placeholder="9090">
+    <br>
+    <label for="subscription">Subscription:</label>
+    <textarea id="subscription" name="subscription" required
+              height="auto">subplaceholder</textarea>
+    <br>
+    <button type="button">
+        Create subscription
+    </button>
+</form>

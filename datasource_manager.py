@@ -1,7 +1,7 @@
 import uuid
 
 
-class Datasource:
+class Subscription:
     def __init__(self, host, port, subscription):
         self.id = uuid.uuid4()
         self.host = host
@@ -9,23 +9,29 @@ class Datasource:
         self.subscription = subscription
 
 
+class DataSource:
+    def __init__(self, id, metadata):
+        self.id = id
+        self.metadata = metadata
+
+
 class DatasourceManager:
 
     def __init__(self):
-        self.datasources = {}
+        self.subscriptions = {}
 
-    def add_datasource(self, host, port, subscription):
+    def add_subscription(self, host, port, subscription):
         #subscribe to ngsi-ld endpoint
-        datasource = Datasource(host, port, subscription)
-        self.datasources[datasource.id] = datasource
+        subscription = Subscription(host, port, subscription)
+        self.subscriptions[subscription.id] = subscription
 
         #TODO send subscription to ngsi broker
 
     def del_subscription(self, subid):
-        datasource = self.datasources.pop(subid)
+        datasource = self.subscriptions.pop(subid)
 
         #TODO unsubscribe at ngsi broker
 
 
     def get_subscriptions(self):
-        return self.datasources
+        return self.subscriptions

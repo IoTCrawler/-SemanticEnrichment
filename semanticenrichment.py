@@ -1,6 +1,7 @@
 import json
 import cherrypy
 import threading
+import uuid
 from qoi_system import QoiSystem
 from datasource_manager import DatasourceManager
 
@@ -28,7 +29,27 @@ class SemanticEnrichment:
     @cherrypy.expose
     def showsubscriptions(self):
         print("showsubscriptions called")
-        print(self.datasource_manager.get_subscriptions())
+        subscriptions = self.datasource_manager.get_subscriptions()
+        yield '<!DOCTYPE html> <html lang="en"> <body>'
+        with open('html/subscription_form.html') as formFile:
+            with open('jsonfiles/UMU_Subscription_TemperatureSensor.json') as jFile:
+                data = json.load(jFile)
+                data['id'] = data['id'] + str(uuid.uuid4())
+                html = formFile.read()
+                html = html.replace("subplaceholder", json.dumps(data, indent=2))
+                yield html
+        yield '<table>'
+        for sub in subscriptions:
+            yield '<tr><td>' + sub.id + '</td><td>' + sub.host + '</td><td>' + sub.subscription + '</td></tr>'
+        yield '</table></body></html>'
+        return
+
+    @cherrypy.tools.allow(methods=['POST'])
+    @cherrypy.expose
+    def callback(self):
+        print("callback called")
+        print(cherrypy.request.body.read())
+
 
 
 # sample data
@@ -69,6 +90,7 @@ metadata = {
 
 if __name__ == "__main__":
     cherrypy.server.socket_host = '0.0.0.0'
+    cherrypy.server.socket_port = 8081
     threading.Thread(target=cherrypy.quickstart, args=(SemanticEnrichment(),)).start()
     semantic_enrichment = SemanticEnrichment()
     semantic_enrichment.notify_datasource(metadata)

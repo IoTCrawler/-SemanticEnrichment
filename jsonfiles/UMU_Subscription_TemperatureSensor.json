@@ -1,0 +1,30 @@
+{
+  "id": "urn:ngsi-ld:Subscription:SE_",
+  "type": "Subscription",
+  "entities": [
+    {
+      "type": "TemperatureSensor"
+    }
+  ],
+  "watchedAttributes": [
+    "Value"
+  ],
+  "notification": {
+    "attributes": [
+      "Value"
+    ],
+    "format": "keyValues",
+    "endpoint": {
+      "uri": "{{notif-endpoint}}",
+      "accept": "application/json"
+    }
+  },
+  "@context": [
+    "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",
+    {
+      "TemperatureSensor": "http://example.org/pleyades/TemperatureSensor",
+      "Value": "http://example.org/pleyades/Value",
+      "Description": "http://example.org/pleyades/Description"
+    }
+  ]
+}
