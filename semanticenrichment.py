@@ -15,20 +15,27 @@ class SemanticEnrichment:
     def notify_datasource(self, metadata):
         # TODO call data source manager to subscribe etc.
 
-        # TODO initialise a qoi system per value of a stream?
+        # TODO initialise a qoi system per value of a stream? per stream, metrics are split to stream or value
         # store metadata in qoi_system
         self.qoisystem_map[metadata['id']] = QoiSystem(metadata)
 
     def receive(self, data):
         self.qoisystem_map[data['id']].update(data)
 
+        #Todo save qoi data to MDR
+        qoidata = self.qoisystem_map[data['id']].get_qoivector()
+
     def get_qoivector(self, sourceid):
         return self.qoisystem_map[sourceid].get_qoivector()
 
-    @cherrypy.tools.allow(methods=['GET'])
+    @cherrypy.tools.allow(methods=['GET', 'POST'])
     @cherrypy.expose
-    def showsubscriptions(self):
-        print("showsubscriptions called")
+    def showsubscriptions(self, host=None, port=None, subscription=None):
+
+        if None not in (host, port, subscription):
+            print("new subscription")
+            self.datasource_manager.add_subscription(host, port, subscription)
+
         subscriptions = self.datasource_manager.get_subscriptions()
         yield '<!DOCTYPE html> <html lang="en"> <body>'
         with open('html/subscription_form.html') as formFile:
@@ -39,16 +46,30 @@ class SemanticEnrichment:
                 html = html.replace("subplaceholder", json.dumps(data, indent=2))
                 yield html
         yield '<table>'
-        for sub in subscriptions:
-            yield '<tr><td>' + sub.id + '</td><td>' + sub.host + '</td><td>' + sub.subscription + '</td></tr>'
+        for sub in subscriptions.values():
+            yield '<tr><td><form action=\"/deletesubscription\" method=\"POST\"><button type="submit" name=\"subid\" value=\"' + str(sub.id) + '\">Delete</button></form></td><td>' + str(sub.id) + '</td><td>' + sub.host + '</td><td>' + sub.subscription + '</td></tr>'
         yield '</table></body></html>'
         return
+
+    @cherrypy.tools.allow(methods=['POST'])
+    @cherrypy.expose
+    def deletesubscription(self, subid):
+        print("delete called", subid)
+        self.datasource_manager.del_subscription(subid)
+
+        raise cherrypy.HTTPRedirect("/showsubscriptions")
+
+    @cherrypy.tools.allow(methods=['GET'])
+    @cherrypy.expose
+    def showdatasources(self):
+        return json.dumps(self.datasource_manager.get_datasources(), indent=2)
 
     @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.expose
     def callback(self):
         print("callback called")
         print(cherrypy.request.body.read())
+        #TODO parse and add to datasource manager
 
 
 
