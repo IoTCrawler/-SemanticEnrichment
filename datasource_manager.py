@@ -1,19 +1,21 @@
 import uuid
 import requests
+import json
 
 class Subscription:
-    def __init__(self, host, port, subscription):
-        self.id = uuid.uuid4()
+    def __init__(self, subid, host, port, subscription):
+        self.id = subid
         self.host = host
         self.port = port
         self.subscription = subscription
 
 
-class DataSource:
-    def __init__(self, id, metadata):
-        self.id = id
-        self.metadata = metadata
 
+class DataSource:
+    def __init__(self, id, dstype, metadata):
+        self.id = id
+        self.dstype = dstype
+        self.metadata = metadata
 
 class DatasourceManager:
 
@@ -27,25 +29,33 @@ class DatasourceManager:
 
     def add_subscription(self, host, port, subscription):
         #subscribe to ngsi-ld endpoint
-        sub = Subscription(host, port, subscription)
+        print("test", subscription)
+        sub = Subscription(subscription['id'], host, port, subscription)
         self.subscriptions[sub.id] = sub
 
-        server_url = host + ":" + str(port) + "/ngsi-ld/v1/subscriptions"
+        server_url = host + ":" + str(port) + "/ngsi-ld/v1/subscriptions/"
+        print(subscription)
         r = requests.post(server_url, json=subscription, headers=self.headers)
         print("add_subscription", r.text)
         return r.text
 
-        #TODO send subscription to ngsi broker
 
     def del_subscription(self, subid):
         print(self.subscriptions.keys())
-        datasource = self.subscriptions.pop(uuid.UUID(subid))
+        subscription = self.subscriptions.pop(subid)
 
         #TODO unsubscribe at ngsi broker
+        server_url = subscription.host + ":" + str(subscription.port) + "/ngsi-ld/v1/subscriptions/"
+        server_url = server_url + subid
+        print(server_url)
+        r = requests.delete(server_url, headers=self.headers)
+        print("del_subscription", r)
 
     def add_datasource(self, data):
         print("add_datasource with", data)
         #TODO parse and add to store
+        datasource = DataSource(data['id'], data['type'], data)
+        self.datasources[data['id']] = datasource
         #TODO check how to get the data
 
     def get_subscriptions(self):

@@ -11,6 +11,9 @@ class SemanticEnrichment:
         self.qoisystem_map = {}
         self.datasource_manager = DatasourceManager()
         self.datasource_map = ""
+        self.callback_url = "http://e71f4d93.ngrok.io/callback"
+        #TODO get active subscriptions from broker?
+
 
     def notify_datasource(self, metadata):
         # TODO call data source manager to subscribe etc.
@@ -34,7 +37,7 @@ class SemanticEnrichment:
 
         if None not in (host, port, subscription):
             print("new subscription")
-            self.datasource_manager.add_subscription(host, port, subscription)
+            self.datasource_manager.add_subscription(host, port, json.loads(subscription))
 
         subscriptions = self.datasource_manager.get_subscriptions()
         yield '<!DOCTYPE html> <html lang="en"> <body>'
@@ -42,12 +45,13 @@ class SemanticEnrichment:
             with open('jsonfiles/UMU_Subscription_TemperatureSensor.json') as jFile:
                 data = json.load(jFile)
                 data['id'] = data['id'] + str(uuid.uuid4())
+                data['notification']['endpoint']['uri'] = self.callback_url
                 html = formFile.read()
                 html = html.replace("subplaceholder", json.dumps(data, indent=2))
                 yield html
         yield '<table>'
         for sub in subscriptions.values():
-            yield '<tr><td><form action=\"/deletesubscription\" method=\"POST\"><button type="submit" name=\"subid\" value=\"' + str(sub.id) + '\">Delete</button></form></td><td>' + str(sub.id) + '</td><td>' + sub.host + '</td><td>' + sub.subscription + '</td></tr>'
+            yield '<tr><td><form action=\"/deletesubscription\" method=\"POST\"><button type="submit" name=\"subid\" value=\"' + str(sub.id) + '\">Delete</button></form></td><td>' + str(sub.id) + '</td><td>' + sub.host + '</td><td>' + json.dumps(sub.subscription) + '</td></tr>'
         yield '</table></body></html>'
         return
 
@@ -62,15 +66,25 @@ class SemanticEnrichment:
     @cherrypy.tools.allow(methods=['GET'])
     @cherrypy.expose
     def showdatasources(self):
-        return json.dumps(self.datasource_manager.get_datasources(), indent=2)
+        subscriptions = self.datasource_manager.get_subscriptions()
+        yield '<!DOCTYPE html> <html lang="en"> <body><table>'
+        for ds in self.datasource_manager.get_datasources().values():
+            print(ds.metadata)
+            yield '<tr><td></td><td>' + str(ds.id) + '</td><td>' + ds.dstype + '</td><td>' + str(ds.metadata) + '</td></tr>'
+        yield '</table></body></html>'
+        return
 
     @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.expose
+    @cherrypy.tools.json_in()
     def callback(self):
         print("callback called")
         print(cherrypy.request.body.read())
         #TODO parse and add to datasource manager
-
+        print(cherrypy.request.json)
+        jsonData = cherrypy.request.json
+        for data in jsonData:
+            self.datasource_manager.add_datasource(data)
 
 
 # sample data
