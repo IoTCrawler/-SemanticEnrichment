@@ -5,15 +5,15 @@ import uuid
 from qoi_system import QoiSystem
 from datasource_manager import DatasourceManager
 
+
 class SemanticEnrichment:
 
     def __init__(self):
         self.qoisystem_map = {}
         self.datasource_manager = DatasourceManager()
         self.datasource_map = ""
-        self.callback_url = "http://e71f4d93.ngrok.io/callback"
-        #TODO get active subscriptions from broker?
-
+        self.callback_url = "http://454894f1.ngrok.io/callback"
+        # TODO get active subscriptions from broker?
 
     def notify_datasource(self, metadata):
         # TODO call data source manager to subscribe etc.
@@ -25,7 +25,7 @@ class SemanticEnrichment:
     def receive(self, data):
         self.qoisystem_map[data['id']].update(data)
 
-        #Todo save qoi data to MDR
+        # Todo save qoi data to MDR
         qoidata = self.qoisystem_map[data['id']].get_qoivector()
 
     def get_qoivector(self, sourceid):
@@ -51,7 +51,9 @@ class SemanticEnrichment:
                 yield html
         yield '<table>'
         for sub in subscriptions.values():
-            yield '<tr><td><form action=\"/deletesubscription\" method=\"POST\"><button type="submit" name=\"subid\" value=\"' + str(sub.id) + '\">Delete</button></form></td><td>' + str(sub.id) + '</td><td>' + sub.host + '</td><td>' + json.dumps(sub.subscription) + '</td></tr>'
+            yield '<tr><td><form action=\"/deletesubscription\" method=\"POST\"><button type="submit" name=\"subid\" value=\"' + str(
+                sub.id) + '\">Delete</button></form></td><td>' + str(
+                sub.id) + '</td><td>' + sub.host + '</td><td>' + json.dumps(sub.subscription) + '</td></tr>'
         yield '</table></body></html>'
         return
 
@@ -70,7 +72,8 @@ class SemanticEnrichment:
         yield '<!DOCTYPE html> <html lang="en"> <body><table>'
         for ds in self.datasource_manager.get_datasources().values():
             print(ds.metadata)
-            yield '<tr><td></td><td>' + str(ds.id) + '</td><td>' + ds.dstype + '</td><td>' + str(ds.metadata) + '</td></tr>'
+            yield '<tr><td></td><td>' + str(ds.id) + '</td><td>' + ds.dstype + '</td><td>' + str(
+                ds.metadata) + '</td></tr>'
         yield '</table></body></html>'
         return
 
@@ -80,60 +83,58 @@ class SemanticEnrichment:
     def callback(self):
         print("callback called")
         print(cherrypy.request.body.read())
-        #TODO parse and add to datasource manager
+        # TODO parse and add to datasource manager
         print(cherrypy.request.json)
-        jsonData = cherrypy.request.json
-        for data in jsonData:
+        jsondata = cherrypy.request.json
+        for data in jsondata:
             self.datasource_manager.add_datasource(data)
 
 
-# sample data
-data = {
-    "id": 1,
-    "timestamp": 121232345,
-    "values": {
-        "value1": 1,
-        "value2": -100
-    }
-}
-
-metadata = {
-    "id": 1,
-    "sensortype": "weather",
-    "measuretime": "timestamp",
-    "updateinterval": {
-        "frequency": "100",
-        "unit": "seconds"
-    },
-    "fields": {
-        "value1": {
-            "sensortype": "temperature",
-            "valuetype": "int",
-            "min": -20,
-            "max": 40
-        },
-        "value2": {
-            "sensortype": "humidity",
-            "valuetype": "int",
-            "min": 0,
-            "max": 100
-        }
-    }
-}
-
-
+# # sample data
+# data = {
+#     "id": 1,
+#     "timestamp": 121232345,
+#     "values": {
+#         "value1": 1,
+#         "value2": -100
+#     }
+# }
+#
+# metadata = {
+#     "id": 1,
+#     "sensortype": "weather",
+#     "measuretime": "timestamp",
+#     "updateinterval": {
+#         "frequency": "100",
+#         "unit": "seconds"
+#     },
+#     "fields": {
+#         "value1": {
+#             "sensortype": "temperature",
+#             "valuetype": "int",
+#             "min": -20,
+#             "max": 40
+#         },
+#         "value2": {
+#             "sensortype": "humidity",
+#             "valuetype": "int",
+#             "min": 0,
+#             "max": 100
+#         }
+#     }
+# }
 
 if __name__ == "__main__":
     cherrypy.server.socket_host = '0.0.0.0'
     cherrypy.server.socket_port = 8081
     threading.Thread(target=cherrypy.quickstart, args=(SemanticEnrichment(),)).start()
-    semantic_enrichment = SemanticEnrichment()
-    semantic_enrichment.notify_datasource(metadata)
-    semantic_enrichment.receive(data)
-    semantic_enrichment.receive(data)
-    print(semantic_enrichment.get_qoivector(data['id']))
-    qoi_data = json.dumps(semantic_enrichment.get_qoivector(data['id']), indent=2)
-    print(qoi_data)
+    # semantic_enrichment = SemanticEnrichment()
+    # semantic_enrichment.notify_datasource(metadata)
+    # semantic_enrichment.receive(data)
+    # semantic_enrichment.receive(data)
+    # print(semantic_enrichment.get_qoivector(data['id']))
+    # qoi_data = json.dumps(semantic_enrichment.get_qoivector(data['id']), indent=2)
+    # print(qoi_data)
 
 # TODO
 # which metric for whole stream, which for every single value?

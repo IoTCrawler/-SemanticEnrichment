@@ -4,7 +4,6 @@ from other.buffer import RingBuffer
 class RewardAndPunishment:
     """Reward and Punishment mechanism inspired by "Modeling and Assessing Quality of Information in Multisensor
     Multimedia Monitoring Systems" by Hoassain et al. """
-    
 
     def __init__(self, window):
         self.window = window
@@ -22,7 +21,6 @@ class RewardAndPunishment:
             alpha = 1.0
         self.buffer.add(alpha)
 
-
         if w_minus_1 > 0:
             r_p = (alpha_w_minus_1 / w_minus_1) - ((alpha_w_minus_1 + alpha) / (w_minus_1 + 1))
             self.reward -= 2 * r_p
@@ -39,7 +37,3 @@ class RewardAndPunishment:
         elif abs(self.reward) > 1:
             return 1
         return abs(self.reward)  # * 2 - 1
-
-
-
-
