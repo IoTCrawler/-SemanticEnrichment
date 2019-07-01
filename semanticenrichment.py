@@ -2,6 +2,7 @@ import json
 import cherrypy
 import threading
 import uuid
+import datetime
 from qoi_system import QoiSystem
 from datasource_manager import DatasourceManager
 
@@ -13,10 +14,10 @@ class SemanticEnrichment:
         self.datasource_manager = DatasourceManager()
         self.datasource_map = ""
         self.callback_url = "http://454894f1.ngrok.io/callback"
-        # TODO get active subscriptions from broker?
 
     def notify_datasource(self, metadata):
         # TODO call data source manager to subscribe etc.
+        self.datasource_manager.add_datasource(metadata)
 
         # TODO initialise a qoi system per value of a stream? per stream, metrics are split to stream or value
         # store metadata in qoi_system
@@ -85,10 +86,90 @@ class SemanticEnrichment:
         print(cherrypy.request.body.read())
         # TODO parse and add to datasource manager
         print(cherrypy.request.json)
-        jsondata = cherrypy.request.json
-        for data in jsondata:
-            self.datasource_manager.add_datasource(data)
+        jsondata = json.loads(cherrypy.request.json)
+        # for data in jsondata:
+        #TODO split to data and metadata?
+        # metadata, data = \
+        data, metadata = self.parse_ngsi(jsondata)
+        self.notify_datasource(metadata)
+        self.receive(data)
 
+    def parse_ngsi(self, ngsi_data):
+        print(type(ngsi_data))
+        #search context
+        print("d", ngsi_data)
+        #Find parse method
+        data_type = ngsi_data['type']
+        print(data_type)
+        context = ngsi_data['@context']  #There is no @context in notifications...
+        print(context)
+
+        #TODO shift to environment parse method
+        #build data
+        data = {}
+        data['id'] = ngsi_data['id']
+        #get one observedAt as timestamp
+        data['timestamp'] = self.get_ngsi_observedAt(ngsi_data)
+        data['values'] = self.get_ngsi_values(ngsi_data)
+        print(data)
+
+        metadata = {}
+        metadata['id'] = ngsi_data['id']
+        metadata['type'] = ngsi_data['type']
+        # metadata['updateinterval']
+        metadata['fields'] = self.get_ngsi_fields(ngsi_data)
+        print(metadata)
+
+        return data, metadata
+
+
+    def get_ngsi_observedAt(self, json_object):
+        for obj in json_object:
+            obj = json_object[obj]
+            if 'type' in obj:
+                if obj['type'] == 'Property':
+                    if 'observedAt' in obj:
+                        str_date = obj['observedAt']
+                        return datetime.datetime.strptime(str_date, "%Y-%m-%dT%H:%M:%S").timestamp()
+
+    def get_ngsi_values(self, json_object):
+        values = {}
+        for key in json_object:
+            obj = json_object[key]
+            if 'type' in obj:
+                if obj['type'] == 'Property':
+                    if 'value' in obj:
+                        values[key] = obj['value']
+        return values
+
+    def get_ngsi_fields(self, json_object):
+        fields = {}
+        for key in json_object:
+            obj = json_object[key]
+            if 'type' in obj:
+                if obj['type'] == 'Property':
+                    field = {}
+                    if 'type' in obj:
+                        field['type'] = obj['type']
+                    else:
+                        field['type'] = 'NA'
+
+                    if 'min' in obj:
+                        field['min'] = obj['min']['value']
+                    else:
+                        field['min'] = 'NA'
+
+                    if 'max' in obj:
+                        field['max'] = obj['max']['value']
+                    else:
+                        field['max'] = 'NA'
+
+                    if 'valuetype' in obj:
+                        field['valuetype'] = obj['valuetype']['value']
+                    else:
+                        field['valuetype'] = 'NA'
+                    fields[key] = field
+        return fields
 
 # # sample data
 # data = {
@@ -102,8 +183,7 @@ class SemanticEnrichment:
 #
 # metadata = {
 #     "id": 1,
-#     "sensortype": "weather",
-#     "measuretime": "timestamp",
+#     "type": "weather",
 #     "updateinterval": {
 #         "frequency": "100",
 #         "unit": "seconds"
@@ -125,9 +205,21 @@ class SemanticEnrichment:
 # }
 
 if __name__ == "__main__":
-    cherrypy.server.socket_host = '0.0.0.0'
-    cherrypy.server.socket_port = 8081
-    threading.Thread(target=cherrypy.quickstart, args=(SemanticEnrichment(),)).start()
+
+    test = {'id': 'urn:ngsi-ld:Environment:B4:E6:2D:8C:30:95', 'type': 'Environment', 'mac': {'type': 'Property', 'value': 'B4:E6:2D:8C:30:95'}, 'temperature': {'type': 'Property', 'value': 27.751, 'observedAt': '2019-07-01T09:45:46', 'min': {'type': 'Property', 'value': -20}, 'max': {'type': 'Property', 'value': 50}, 'providedBy': {'type': 'Relationship', 'object': 'urn:ngsi-ld:Environment:B4:E6:2D:8C:30:95:BME680'}}, 'humidity': {'type': 'Property', 'value': 39.1929, 'observedAt': '2019-07-01T09:45:46', 'unitCode': '', 'min': {'type': 'Property', 'value': 0}, 'max': {'type': 'Property', 'value': 100}, 'providedBy': {'type': 'Relationship', 'object': 'urn:ngsi-ld:Environment:B4:E6:2D:8C:30:95:BME680'}}, 'iaq': {'type': 'Property', 'value': 25, 'observedAt': '2019-07-01T09:45:46', 'min': {'type': 'Property', 'value': 0}, 'max': {'type': 'Property', 'value': 500}, 'providedBy': {'type': 'Relationship', 'object': 'urn:ngsi-ld:Environment:B4:E6:2D:8C:30:95:BME680'}}, 'location': {'type': 'GeoProperty', 'value': {'type': 'Point', 'coordinates': [8.023865, 52.282645]}}, '@context': ['http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld', {'Environment': 'http://example.org/environment/environment', 'iaq': 'http://example.org/environment/bme680/iaq', 'temperature': 'http://example.org/environment/bme680/temperature', 'humidity': 'http://example.org/environment/bme680/humidity', 'mac': 'http://example.org/environment/bme680/mac'}]}
+    semantic_enrichment = SemanticEnrichment()
+    data, metadata = semantic_enrichment.parse_ngsi(test)
+    semantic_enrichment.notify_datasource(metadata)
+    semantic_enrichment.receive(data)
+    print(semantic_enrichment.get_qoivector('urn:ngsi-ld:Environment:B4:E6:2D:8C:30:95'))
+
+    # cherrypy.server.socket_host = '0.0.0.0'
+    # cherrypy.server.socket_port = 8081
+    # threading.Thread(target=cherrypy.quickstart, args=(SemanticEnrichment(),)).start()
+
+
+
+
     # semantic_enrichment = SemanticEnrichment()
     # semantic_enrichment.notify_datasource(metadata)
     # semantic_enrichment.receive(data)

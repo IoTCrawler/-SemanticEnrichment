@@ -77,6 +77,7 @@ class DatasourceManager:
             ids = ()
             if r.status_code != 500:
                 for data in r.json():
+                    print("data", data)
                     if data['id'].startswith('SE_', data['id'].rfind(':') + 1):
                         sub = Subscription(data['id'], host['host'], host['port'], data)
                         self.subscriptions[sub.id] = sub
