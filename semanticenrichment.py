@@ -69,12 +69,11 @@ class SemanticEnrichment:
     @cherrypy.tools.allow(methods=['GET'])
     @cherrypy.expose
     def showdatasources(self):
-        subscriptions = self.datasource_manager.get_subscriptions()
         yield '<!DOCTYPE html> <html lang="en"> <body><table>'
         for ds in self.datasource_manager.get_datasources().values():
             print(ds.metadata)
             yield '<tr><td></td><td>' + str(ds.id) + '</td><td>' + ds.dstype + '</td><td>' + str(
-                ds.metadata) + '</td></tr>'
+                ds.metadata) + '</td><td>' + str(self.get_qoivector(ds.id)) + '</td></tr>'
         yield '</table></body></html>'
         return
 
@@ -85,40 +84,26 @@ class SemanticEnrichment:
         print("callback called")
         print(cherrypy.request.body.read())
         # TODO parse and add to datasource manager
-        print(cherrypy.request.json)
         jsondata = json.loads(cherrypy.request.json)
-        # for data in jsondata:
-        #TODO split to data and metadata?
-        # metadata, data = \
+
+        #split to data and metadata
         data, metadata = self.parse_ngsi(jsondata)
+        #create data source in data source manager
         self.notify_datasource(metadata)
         self.receive(data)
 
     def parse_ngsi(self, ngsi_data):
-        print(type(ngsi_data))
-        #search context
-        print("d", ngsi_data)
-        #Find parse method
-        data_type = ngsi_data['type']
-        print(data_type)
-        context = ngsi_data['@context']  #There is no @context in notifications...
-        print(context)
-
-        #TODO shift to environment parse method
-        #build data
+        #parse ngsi-ld data to data and metadata
         data = {}
         data['id'] = ngsi_data['id']
         #get one observedAt as timestamp
         data['timestamp'] = self.get_ngsi_observedAt(ngsi_data)
         data['values'] = self.get_ngsi_values(ngsi_data)
-        print(data)
 
         metadata = {}
         metadata['id'] = ngsi_data['id']
         metadata['type'] = ngsi_data['type']
-        # metadata['updateinterval']
         metadata['fields'] = self.get_ngsi_fields(ngsi_data)
-        print(metadata)
 
         return data, metadata
 
@@ -206,16 +191,17 @@ class SemanticEnrichment:
 
 if __name__ == "__main__":
 
-    test = {'id': 'urn:ngsi-ld:Environment:B4:E6:2D:8C:30:95', 'type': 'Environment', 'mac': {'type': 'Property', 'value': 'B4:E6:2D:8C:30:95'}, 'temperature': {'type': 'Property', 'value': 27.751, 'observedAt': '2019-07-01T09:45:46', 'min': {'type': 'Property', 'value': -20}, 'max': {'type': 'Property', 'value': 50}, 'providedBy': {'type': 'Relationship', 'object': 'urn:ngsi-ld:Environment:B4:E6:2D:8C:30:95:BME680'}}, 'humidity': {'type': 'Property', 'value': 39.1929, 'observedAt': '2019-07-01T09:45:46', 'unitCode': '', 'min': {'type': 'Property', 'value': 0}, 'max': {'type': 'Property', 'value': 100}, 'providedBy': {'type': 'Relationship', 'object': 'urn:ngsi-ld:Environment:B4:E6:2D:8C:30:95:BME680'}}, 'iaq': {'type': 'Property', 'value': 25, 'observedAt': '2019-07-01T09:45:46', 'min': {'type': 'Property', 'value': 0}, 'max': {'type': 'Property', 'value': 500}, 'providedBy': {'type': 'Relationship', 'object': 'urn:ngsi-ld:Environment:B4:E6:2D:8C:30:95:BME680'}}, 'location': {'type': 'GeoProperty', 'value': {'type': 'Point', 'coordinates': [8.023865, 52.282645]}}, '@context': ['http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld', {'Environment': 'http://example.org/environment/environment', 'iaq': 'http://example.org/environment/bme680/iaq', 'temperature': 'http://example.org/environment/bme680/temperature', 'humidity': 'http://example.org/environment/bme680/humidity', 'mac': 'http://example.org/environment/bme680/mac'}]}
-    semantic_enrichment = SemanticEnrichment()
-    data, metadata = semantic_enrichment.parse_ngsi(test)
-    semantic_enrichment.notify_datasource(metadata)
-    semantic_enrichment.receive(data)
-    print(semantic_enrichment.get_qoivector('urn:ngsi-ld:Environment:B4:E6:2D:8C:30:95'))
+    # test = {'id': 'urn:ngsi-ld:Environment:B4:E6:2D:8C:30:95', 'type': 'Environment', 'mac': {'type': 'Property', 'value': 'B4:E6:2D:8C:30:95'}, 'temperature': {'type': 'Property', 'value': 27.751, 'observedAt': '2019-07-01T09:45:46', 'min': {'type': 'Property', 'value': -20}, 'max': {'type': 'Property', 'value': 50}, 'providedBy': {'type': 'Relationship', 'object': 'urn:ngsi-ld:Environment:B4:E6:2D:8C:30:95:BME680'}}, 'humidity': {'type': 'Property', 'value': 39.1929, 'observedAt': '2019-07-01T09:45:46', 'unitCode': '', 'min': {'type': 'Property', 'value': 0}, 'max': {'type': 'Property', 'value': 100}, 'providedBy': {'type': 'Relationship', 'object': 'urn:ngsi-ld:Environment:B4:E6:2D:8C:30:95:BME680'}}, 'iaq': {'type': 'Property', 'value': 25, 'observedAt': '2019-07-01T09:45:46', 'min': {'type': 'Property', 'value': 0}, 'max': {'type': 'Property', 'value': 500}, 'providedBy': {'type': 'Relationship', 'object': 'urn:ngsi-ld:Environment:B4:E6:2D:8C:30:95:BME680'}}, 'location': {'type': 'GeoProperty', 'value': {'type': 'Point', 'coordinates': [8.023865, 52.282645]}}, '@context': ['http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld', {'Environment': 'http://example.org/environment/environment', 'iaq': 'http://example.org/environment/bme680/iaq', 'temperature': 'http://example.org/environment/bme680/temperature', 'humidity': 'http://example.org/environment/bme680/humidity', 'mac': 'http://example.org/environment/bme680/mac'}]}
+    # semantic_enrichment = SemanticEnrichment()
+    # data, metadata = semantic_enrichment.parse_ngsi(test)
+    # semantic_enrichment.notify_datasource(metadata)
+    # semantic_enrichment.receive(data)
+    # semantic_enrichment.notify_datasource(metadata)
+    # print(semantic_enrichment.get_qoivector('urn:ngsi-ld:Environment:B4:E6:2D:8C:30:95'))
 
-    # cherrypy.server.socket_host = '0.0.0.0'
-    # cherrypy.server.socket_port = 8081
-    # threading.Thread(target=cherrypy.quickstart, args=(SemanticEnrichment(),)).start()
+    cherrypy.server.socket_host = '0.0.0.0'
+    cherrypy.server.socket_port = 8081
+    threading.Thread(target=cherrypy.quickstart, args=(SemanticEnrichment(),)).start()
 
 
 

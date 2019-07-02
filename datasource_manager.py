@@ -1,6 +1,4 @@
-import uuid
 import requests
-import json
 
 
 class Subscription:
@@ -16,6 +14,10 @@ class DataSource:
         self.id = dsid
         self.dstype = dstype
         self.metadata = metadata
+
+    def update(self, metadata):
+        self.metadata.update(metadata)
+
 
 
 class DatasourceManager:
@@ -46,7 +48,6 @@ class DatasourceManager:
         print(self.subscriptions.keys())
         subscription = self.subscriptions.pop(subid)
 
-        # TODO unsubscribe at ngsi broker
         server_url = subscription.host + ":" + str(subscription.port) + "/ngsi-ld/v1/subscriptions/"
         server_url = server_url + subid
         print(server_url)
@@ -54,11 +55,16 @@ class DatasourceManager:
         print("del_subscription", r)
 
     def add_datasource(self, data):
-        print("add_datasource with", data)
-        # TODO parse and add to store
-        datasource = DataSource(data['id'], data['type'], data)
-        self.datasources[data['id']] = datasource
+        # check if datasource is already registered, if so update metadata
+        dsid = data['id']
+        if dsid in self.datasources:
+            self.datasources[dsid].update(data)
+        else:
+            datasource = DataSource(dsid, data['type'], data)
+            self.datasources[dsid] = datasource
         # TODO check how to get the data
+        # in testing we always receive data and metadata in one ngsi-ld form automatically
+        # TODO later to send data "request" to data handler in monitoring
 
     def get_subscriptions(self):
         return self.subscriptions

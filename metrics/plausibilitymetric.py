@@ -22,18 +22,21 @@ class PlausibilityMetric(AbstractMetric):
         elif self.is_number(value):
             self.handle_number(value, metadata)
         else:
-            self.rp.update(0)
             self.lastValue = 'NA'
+            print("nix")
 
     def handle_number(self, value, metadata):
-        #TODO check if min/max in metadata
-        if metadata['min'] <= value <= metadata['max']:
-            self.lastValue = 1
-            self.rp.update(1)
+        if ('min' is not 'NA') & ('max' is not 'NA'):
+            if metadata['min'] <= value <= metadata['max']:
+                self.lastValue = 1
+                self.rp.update(1)
+                print("hier1", self.name)
+            else:
+                self.lastValue = 0
+                self.rp.update(0)
+                print("hier2", self.name)
         else:
-            self.lastValue = 0
-            self.rp.update(0)
-
+            self.lastValue = 'NA'
 
     def is_number(self, s):
         try:

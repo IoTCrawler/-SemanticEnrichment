@@ -10,10 +10,15 @@ class RewardAndPunishment:
         self.buffer = RingBuffer(window)
         self.reward = 1.0
         self.lowest = self.reward
+        self.started = False
         for i in range(0, window):
             self.update(True)
 
     def update(self, truthhold):
+        # detect if rp was already used
+        if not self.started:
+            self.started = True
+
         alpha_w_minus_1 = float(len(list(filter(lambda x: x == 1, self.buffer.items[1:]))))
         w_minus_1 = self.buffer.fill_level() - 1
         alpha = 0.0
@@ -32,6 +37,9 @@ class RewardAndPunishment:
                 self.reward = 0.0
 
     def value(self):
+        # return 'NA' if not used yet
+        if not self.started:
+            return 'NA'
         if abs(self.reward) < 0:
             return 0
         elif abs(self.reward) > 1:

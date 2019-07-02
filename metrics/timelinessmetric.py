@@ -9,7 +9,6 @@ class TimelinessMetric(AbstractMetric):
         self.name = "timeliness_metric"
 
     def update_metric(self, data):
-        # TODO
         pass
 
     def get_qoivalue(self):

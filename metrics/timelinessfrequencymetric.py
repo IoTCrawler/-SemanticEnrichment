@@ -26,5 +26,4 @@ class TimelinessFrequencyMetric(AbstractMetric):
                 self.lastValue = diff
             else:
                 print("Unit not supported for frequency metric:", update_interval)
-                self.rp.update(0)
                 self.lastValue = "NA"
