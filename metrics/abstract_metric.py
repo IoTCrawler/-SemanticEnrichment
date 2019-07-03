@@ -28,7 +28,7 @@ class AbstractMetric(object):
         self.update_metric(data)
 
     def get_qoivalue(self):
-        qoi_values = {'metric': self.name, 'last': self.lastValue, 'running': '{:.2f}'.format(self.rp.value())}
+        qoi_values = {'metric': self.name, 'last': self.lastValue, 'running': 'NA' if self.rp.value() is 'NA' else '{:.2f}'.format(self.rp.value())}
         if len(self.submetrics) > 0:
             subvalues = []
             for submetric in self.submetrics:

@@ -6,7 +6,7 @@ class CompletenessMetric(AbstractMetric):
     def __init__(self, qoisystem):
         super(CompletenessMetric, self).__init__(qoisystem)
         self.qoisystem = qoisystem
-        self.name = "completeness_metric"
+        self.name = "completeness"
 
     def update_metric(self, data):
         nr = len(self.qoisystem.metadata['fields'])

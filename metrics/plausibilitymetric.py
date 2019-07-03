@@ -6,7 +6,7 @@ class PlausibilityMetric(AbstractMetric):
     def __init__(self, qoisystem, field):
         super(PlausibilityMetric, self).__init__(qoisystem)
         self.qoisystem = qoisystem
-        self.name = "plausibility_metric" + "_" + field
+        self.name = "plausibility_" + field
         self.field = field
 
     def update_metric(self, data):
@@ -23,18 +23,15 @@ class PlausibilityMetric(AbstractMetric):
             self.handle_number(value, metadata)
         else:
             self.lastValue = 'NA'
-            print("nix")
 
     def handle_number(self, value, metadata):
-        if ('min' is not 'NA') & ('max' is not 'NA'):
+        if (metadata['min'] is not 'NA') & (metadata['max'] is not 'NA'):
             if metadata['min'] <= value <= metadata['max']:
                 self.lastValue = 1
                 self.rp.update(1)
-                print("hier1", self.name)
             else:
                 self.lastValue = 0
                 self.rp.update(0)
-                print("hier2", self.name)
         else:
             self.lastValue = 'NA'
 

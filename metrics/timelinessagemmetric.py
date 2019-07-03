@@ -7,7 +7,7 @@ class TimelinessAgeMetric(AbstractMetric):
     def __init__(self, qoisystem):
         super(TimelinessAgeMetric, self).__init__(qoisystem)
         self.qoisystem = qoisystem
-        self.name = "timeliness_age_metric"
+        self.name = "age"
 
     def update_metric(self, data):
         if data['timestamp']:

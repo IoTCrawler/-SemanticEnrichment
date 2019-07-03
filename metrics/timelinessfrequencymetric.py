@@ -7,7 +7,7 @@ class TimelinessFrequencyMetric(AbstractMetric):
     def __init__(self, qoisystem):
         super(TimelinessFrequencyMetric, self).__init__(qoisystem)
         self.qoisystem = qoisystem
-        self.name = "timeliness_frequency_metric"
+        self.name = "frequency"
         self.lastUpdate = 'NA'
 
     def update_metric(self, data):
