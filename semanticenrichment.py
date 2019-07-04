@@ -84,10 +84,11 @@ class SemanticEnrichment:
         print("callback called")
         print(cherrypy.request.body.read())
         # TODO parse and add to datasource manager
-        jsondata = json.loads(cherrypy.request.json)
+        print(type(cherrypy.request.json))
+        # jsondata = json.loads(cherrypy.request.json)
 
         #split to data and metadata
-        data, metadata = self.parse_ngsi(jsondata)
+        data, metadata = self.parse_ngsi(cherrypy.request.json)
         #create data source in data source manager
         self.notify_datasource(metadata)
         self.receive(data)
