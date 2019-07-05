@@ -36,12 +36,15 @@ class DatasourceManager:
         # subscribe to ngsi-ld endpoint
         print("test", subscription)
         sub = Subscription(subscription['id'], host, port, subscription)
-        self.subscriptions[sub.id] = sub
 
         server_url = host + ":" + str(port) + "/ngsi-ld/v1/subscriptions/"
         print(subscription)
         r = requests.post(server_url, json=subscription, headers=self.headers)
         print("add_subscription", r.text)
+        if r.status_code == 500:
+            print("there was an error creating subscription")
+        else:
+            self.subscriptions[sub.id] = sub
         return r.text
 
     def del_subscription(self, subid):

@@ -58,6 +58,12 @@ class SemanticEnrichment:
         yield '</table></body></html>'
         return
 
+    @cherrypy.expose
+    def index(self):
+        with open('html/index.html') as indexfile:
+            html = indexfile.read()
+            return html
+
     @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.expose
     def deletesubscription(self, subid):
@@ -205,15 +211,6 @@ if __name__ == "__main__":
     threading.Thread(target=cherrypy.quickstart, args=(SemanticEnrichment(),)).start()
 
 
-
-
-    # semantic_enrichment = SemanticEnrichment()
-    # semantic_enrichment.notify_datasource(metadata)
-    # semantic_enrichment.receive(data)
-    # semantic_enrichment.receive(data)
-    # print(semantic_enrichment.get_qoivector(data['id']))
-    # qoi_data = json.dumps(semantic_enrichment.get_qoivector(data['id']), indent=2)
-    # print(qoi_data)
 
 # TODO
 # which metric for whole stream, which for every single value?
