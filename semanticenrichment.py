@@ -208,7 +208,7 @@ if __name__ == "__main__":
 
     cherrypy.server.socket_host = '0.0.0.0'
     cherrypy.server.socket_port = 8081
-    threading.Thread(target=cherrypy.quickstart, args=(SemanticEnrichment(),)).start()
+    threading.Thread(target=cherrypy.quickstart, args=(SemanticEnrichment(),"/semanticenrichment")).start()
 
 
 
