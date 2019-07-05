@@ -52,7 +52,7 @@ class SemanticEnrichment:
                 yield html
         yield '<table>'
         for sub in subscriptions.values():
-            yield '<tr><td><form action=\"/deletesubscription\" method=\"POST\"><button type="submit" name=\"subid\" value=\"' + str(
+            yield '<tr><td><form action=\"deletesubscription\" method=\"POST\"><button type="submit" name=\"subid\" value=\"' + str(
                 sub.id) + '\">Delete</button></form></td><td>' + str(
                 sub.id) + '</td><td>' + sub.host + '</td><td>' + json.dumps(sub.subscription) + '</td></tr>'
         yield '</table></body></html>'
@@ -70,7 +70,7 @@ class SemanticEnrichment:
         print("delete called", subid)
         self.datasource_manager.del_subscription(subid)
 
-        raise cherrypy.HTTPRedirect("/showsubscriptions")
+        raise cherrypy.HTTPRedirect("showsubscriptions")
 
     @cherrypy.tools.allow(methods=['GET'])
     @cherrypy.expose
