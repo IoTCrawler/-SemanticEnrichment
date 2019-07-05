@@ -6,14 +6,14 @@ import datetime
 from qoi_system import QoiSystem
 from datasource_manager import DatasourceManager
 
-
+#TODO shift broker, callback, etc. options into a config file
 class SemanticEnrichment:
 
     def __init__(self):
         self.qoisystem_map = {}
         self.datasource_manager = DatasourceManager()
         self.datasource_map = ""
-        self.callback_url = "http://454894f1.ngrok.io/callback"
+        self.callback_url = "https://mobcom.ecs.hs-osnabrueck.de/semanticenrichment/callback"
 
     def notify_datasource(self, metadata):
         # TODO call data source manager to subscribe etc.
