@@ -1,0 +1,17 @@
+
+{% extends "layout.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block body %}
+<h3>IoTCrawler Semantic Enrichment</h3>
+<table>
+    {% for ds in datasources %}
+    <tr><td>{{ ds.id}}</td><td>{{ ds.dstype }}</td><td>{{ ds.metadata }}</td><td>{{ ds.qoi}}</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}
+
+
+
