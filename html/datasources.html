@@ -6,11 +6,21 @@
 
 {% block body %}
 <p>The following list shows all registered data sources and their current QoI</p>
+
+{% if datasources %}
 <table>
+    <tr>
+        <th>ID</th>
+        <th>Type</th>
+        <th>Metadata</th>
+        <th>QoI</th>
+    </tr>
     {% for ds in datasources %}
     <tr><td>{{ ds.id}}</td><td>{{ ds.dstype }}</td><td>{{ ds.metadata }}</td><td>{{ ds.qoi}}</td></tr>
     {% endfor %}
 </table>
+{% endif %}
+
 {% endblock %}
 
 

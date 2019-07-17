@@ -27,7 +27,7 @@ logger.addHandler(file_handler)
 logger.addHandler(deque_handler)
 logger.info("logger ready")
 
-bp = Blueprint('semanticenrichment', __name__, static_url_path='', static_folder='/static', template_folder='html')
+bp = Blueprint('semanticenrichment', __name__, static_url_path='', static_folder='static', template_folder='html')
 semanticEnrichment = SemanticEnrichment()
 
 
