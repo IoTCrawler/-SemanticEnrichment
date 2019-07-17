@@ -1,4 +1,5 @@
 import abc
+import logging
 from other.rewardpunishment import RewardAndPunishment
 
 
@@ -11,6 +12,7 @@ class AbstractMetric(object):
         self.rp = RewardAndPunishment(5)
         self.lastValue = 'NA'
         self.submetrics = []
+        self.logger = logging.getLogger('semanticenrichment')
 
     def add_submetric(self, submetric):
         self.submetrics.append(submetric)

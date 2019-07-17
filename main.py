@@ -2,17 +2,38 @@ import json
 import uuid
 import logging
 import ngsi_ld.ngsi_parser
-from flask import Flask, redirect, render_template, url_for, request, Blueprint
+from flask import Flask, redirect, render_template, url_for, request, Blueprint, flash
 from semanticenrichment import SemanticEnrichment
+from other.exceptions import BrokerError
+from other.logging import DequeLoggerHandler
 
-bp = Blueprint('semanticenrichment', __name__, template_folder='html')
+MAX_LOG_ENTRIES = 20
 
+# Configure logging
+logger = logging.getLogger('semanticenrichment')
+logger.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+
+file_handler = logging.FileHandler('semanticenrichment.log')
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(formatter)
+
+deque_handler = DequeLoggerHandler(MAX_LOG_ENTRIES)
+deque_handler.setLevel(logging.DEBUG)
+deque_handler.setFormatter(formatter)
+
+logger.addHandler(file_handler)
+logger.addHandler(deque_handler)
+logger.info("logger ready")
+
+bp = Blueprint('semanticenrichment', __name__, static_url_path='', static_folder='/static', template_folder='html')
 semanticEnrichment = SemanticEnrichment()
 
 
 @bp.route('/')
 @bp.route('/index')
-def home():
+def index():
     return render_template("index.html")
 
 
@@ -28,6 +49,9 @@ def showsubscriptions():
 
     return render_template('subscriptions.html', formdata=formdata, subscriptions=subscriptions.values())
 
+@bp.route('/log', methods=['GET'])
+def showlog():
+    return render_template('log.html', logmessages=deque_handler.get_entries(), maxentries=deque_handler.maxentries)
 
 @bp.route('/addsubscription', methods=['POST'])
 def addsubscription():
@@ -35,10 +59,12 @@ def addsubscription():
     port = request.form.get('port')
     subscription = request.form.get('subscription')
     if None not in (host, port, subscription):
-        print("new subscription")
-        semanticEnrichment.add_subscription(host, port, json.loads(subscription))
+        try:
+            semanticEnrichment.add_subscription(host, port, json.loads(subscription))
+        except BrokerError as e:
+            flash('Error while adding subscription:' + str(e))
     else:
-        logging.debug("missing data for adding subscription")
+        logger.debug("missing data for adding subscription")
     return redirect(url_for('.showsubscriptions'))
 
 
@@ -46,7 +72,7 @@ def addsubscription():
 def deletesubscription():
     subid = request.form.get('subid')
     if subid is not None:
-        print("delete called", subid)
+        logger.info("Delete subscription: " + subid)
         semanticEnrichment.del_subscription(subid)
     return redirect(url_for('.showsubscriptions'))
 
@@ -55,7 +81,6 @@ def deletesubscription():
 def showdatasources():
     datasouces = []
     for ds in semanticEnrichment.get_datasources().values():
-        print(ds.metadata)
         ds.qoi = semanticEnrichment.get_qoivector(ds.id)
         datasouces.append(ds)
     return render_template('datasources.html', datasources=datasouces)
@@ -64,7 +89,7 @@ def showdatasources():
 # @cherrypy.tools.json_in()
 @bp.route('/callback', methods=['POST'])
 def callback():
-    logging.debug("callback called" + str(request.get_json()))
+    logger.debug("callback called" + str(request.get_json()))
     # TODO parse and add to datasource manager
 
     # split to data and metadata
@@ -77,7 +102,27 @@ def callback():
 
 
 app = Flask(__name__)
+app.secret_key = 'e3645c25b6d5bf67ae6da68c824e43b530e0cb43b0b9432b'
 app.register_blueprint(bp, url_prefix='/semanticenrichment')
+
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=8081, debug=False)
+
+# TODO
+# which metric for whole stream, which for every single value?
+# completeness for whole data
+# plausibility for single value
+# timeliness whole data
+# concordance
+# artificiality
+
+# store for common sensor types to calc plausibility? e.g. store common min max values for temp sensors
+
+# in which format will we receive data?
+# do we need a clock for replay experiments? maybe not as we will only get live data or complete datasets
+# we should have qoi for a single measurement as well as for data sources?
+
 # # sample data
 # data = {
 #     "id": 1,
@@ -110,20 +155,3 @@ app.register_blueprint(bp, url_prefix='/semanticenrichment')
 #         }
 #     }
 # }
-
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8081, debug=False)
-
-# TODO
-# which metric for whole stream, which for every single value?
-# completeness for whole data
-# plausibility for single value
-# timeliness whole data
-# concordance
-# artificiality
-
-# store for common sensor types to calc plausibility? e.g. store common min max values for temp sensors
-
-# in which format will we receive data?
-# do we need a clock for replay experiments? maybe not as we will only get live data or complete datasets
-# we should have qoi for a single measurement as well as for data sources?

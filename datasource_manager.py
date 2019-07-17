@@ -1,5 +1,8 @@
 import requests
+import logging
+from other.exceptions import BrokerError
 
+logger = logging.getLogger('semanticenrichment')
 
 class Subscription:
     def __init__(self, subid, host, port, subscription):
@@ -34,28 +37,25 @@ class DatasourceManager:
 
     def add_subscription(self, host, port, subscription):
         # subscribe to ngsi-ld endpoint
-        print("test", subscription)
         sub = Subscription(subscription['id'], host, port, subscription)
 
         server_url = host + ":" + str(port) + "/ngsi-ld/v1/subscriptions/"
-        print(subscription)
         r = requests.post(server_url, json=subscription, headers=self.headers)
-        print("add_subscription", r.text)
+        logger.info("Adding subscription: " + r.text)
         if r.status_code == 500:
-            print("there was an error creating subscription")
+            logger.debug("error creating subscription: " + r.text)
+            raise BrokerError(r.text)
         else:
             self.subscriptions[sub.id] = sub
         return r.text
 
     def del_subscription(self, subid):
-        print(self.subscriptions.keys())
         subscription = self.subscriptions.pop(subid)
 
         server_url = subscription.host + ":" + str(subscription.port) + "/ngsi-ld/v1/subscriptions/"
         server_url = server_url + subid
-        print(server_url)
         r = requests.delete(server_url, headers=self.headers)
-        print("del_subscription", r)
+        logger.debug("deleting subscription " + subid + ": " + r.text)
 
     def add_datasource(self, data):
         # check if datasource is already registered, if so update metadata
@@ -82,14 +82,12 @@ class DatasourceManager:
             # get old subscriptions for semantic enrichment (starting with 'SE_')
             server_url = host['host'] + ":" + str(host['port']) + "/ngsi-ld/v1/subscriptions/"
             r = requests.get(server_url, headers=self.headers)
-            print("get_active_subscriptions", r)
             ids = ()
             if r.status_code != 500:
                 for data in r.json():
-                    print("data", data)
                     if data['id'].startswith('SE_', data['id'].rfind(':') + 1):
                         sub = Subscription(data['id'], host['host'], host['port'], data)
                         self.subscriptions[sub.id] = sub
             else:
-                print('error getting subscriptions')
+                logger.error("Error getting active subscriptions: " + r.text)
             return ids

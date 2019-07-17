@@ -3,18 +3,17 @@ import logging
 from qoi_system import QoiSystem
 from datasource_manager import DatasourceManager
 
+logger = logging.getLogger('semanticenrichment')
 
 # TODO shift broker, callback, etc. options into a config file
 class SemanticEnrichment:
 
     def __init__(self):
-        logging.basicConfig(filename='semanticenrichment.log', format='%(asctime)s %(levelname)s:%(message)s',
-                            level=logging.DEBUG)
         self.qoisystem_map = {}
         self.datasource_manager = DatasourceManager()
         self.datasource_map = ""
         self.callback_url = "https://mobcom.ecs.hs-osnabrueck.de/semanticenrichment/callback"
-        logging.info("Semantic Enrichment started")
+        logger.info("Semantic Enrichment started")
 
     def notify_datasource(self, metadata):
         # TODO call data source manager to subscribe etc.

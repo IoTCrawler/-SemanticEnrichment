@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+
+{% block body %}
+<p>
+Shows the last {{ maxentries}} log entries:
+</p>
+
+<div style="overflow:auto; text-align: left">
+    <table>
+        {% for msg in logmessages %}
+        <tr><td>{{ msg.timestamp }}</td><td>{{ msg.level }}</td><td>{{ msg.message }}</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}
