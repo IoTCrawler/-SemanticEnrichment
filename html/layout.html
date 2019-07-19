@@ -10,39 +10,40 @@
     <script src="{{ url_for('.static', filename='js/template.js') }}"></script>
 
     <title>IoTCrawler - Semantic Enrichment</title>
+</head>
+
+<body>
     <h1 align='Center'> IoT Crawler - Semantic Enrichment</h1>
     <img src="{{ url_for('.static', filename='images/HS-OS-Logo-Quer-rgb.jpg') }}" style='position:absolute; top:0; right:0;' width="300px" height='70px'>
     <img src="{{ url_for('.static', filename='images/IoTCrawler_Logo.png') }}" style='position:absolute; top:10px; left:0;' width="300px" height='60px'>
 
-</head>
-<body>
-<nav id="navbar" class="navbar navbar-default" role="navigation">
-    <div class="container-fluid">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="{{ url_for('.index') }}">Semantic Enrichment</a>
+    <nav id="navbar" class="navbar navbar-default" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="{{ url_for('.index') }}">Semantic Enrichment</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li><a href="{{ url_for('.showsubscriptions') }}">Subscriptions</a></li>
+                <li><a href="{{ url_for('.showdatasources') }}">Datasources</a></li>
+                <li><a href="{{ url_for('.showlog') }}">Log</a></li>
+            </ul>
         </div>
-        <ul class="nav navbar-nav">
-            <li><a href="{{ url_for('.showsubscriptions') }}">Subscriptions</a></li>
-            <li><a href="{{ url_for('.showdatasources') }}">Datasources</a></li>
-            <li><a href="{{ url_for('.showlog') }}">Log</a></li>
-        </ul>
+    </nav>
+
+
+
+    <div id="top-section">
+        {% block top %}{% endblock %}
     </div>
-</nav>
+
+    <div id="middle-section">
+        {% block body %}{% endblock %}
+    </div>
 
 
-
-<div id="top-section">
-    {% block top %}{% endblock %}
-</div>
-
-<div id="middle-section">
-    {% block body %}{% endblock %}
-</div>
-
-
-<div class="footer">
-    {% block footer %}{% endblock %}
-</div>
+    <div class="footer">
+        {% block footer %}{% endblock %}
+    </div>
 
 </body>
 </html>

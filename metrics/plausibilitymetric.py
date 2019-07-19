@@ -3,11 +3,10 @@ from metrics.abstract_metric import AbstractMetric
 
 class PlausibilityMetric(AbstractMetric):
 
-    def __init__(self, qoisystem, field):
-        super(PlausibilityMetric, self).__init__(qoisystem)
+    def __init__(self, qoisystem, field=None):
+        super(PlausibilityMetric, self).__init__(qoisystem, field)
         self.qoisystem = qoisystem
-        self.name = "plausibility_" + field
-        self.field = field
+        self.name = "plausibility"
 
     def update_metric(self, data):
         # for d in data['values']:

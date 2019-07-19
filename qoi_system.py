@@ -41,4 +41,5 @@ class QoiSystem:
         qoilist = []
         for m in self.metrics:
             qoilist.append(m.get_qoivalue())
+            print(m.get_ngsi())
         return qoilist

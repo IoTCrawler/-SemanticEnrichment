@@ -16,9 +16,9 @@ class DequeLoggerHandler(logging.Handler):
 
     def emit(self, record):
         msg = self.format(record)
-        timestamp = " ".join(msg.split(" ", 2)[:2])
-        level = "".join(msg.split(" ", 3)[2:3])
-        message = "".join(msg.split(" ", 3)[3:])
+        timestamp = " ".join(msg.split(" ", 1)[:1])
+        level = "".join(msg.split(" ", 2)[1:2])
+        message = "".join(msg.split(" ", 2)[2:])
         self.entries.append(Entry(timestamp, level, message))
 
     def get_entries(self):

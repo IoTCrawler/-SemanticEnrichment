@@ -28,6 +28,19 @@ class SemanticEnrichment:
 
         # Todo save qoi data to MDR
         qoidata = self.qoisystem_map[data['id']].get_qoivector()
+        print("format qoi data as ngsi-ld", qoidata)
+        print(data['id'])
+        completeness = [obj for obj in qoidata if obj['metric']=='completeness']
+        # TODO realtionship to be added to the dataset to link QoI
+        ngsi = {
+            "hasQuality": {
+                "type": "Relationship",
+                "object": data['id'] + "_QoI"
+            }
+        }
+        # TODO create ngsi formatted qoi
+        
+
 
     def get_qoivector(self, sourceid):
         return self.qoisystem_map[sourceid].get_qoivector()

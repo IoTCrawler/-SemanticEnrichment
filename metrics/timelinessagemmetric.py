@@ -16,12 +16,12 @@ class TimelinessAgeMetric(AbstractMetric):
         else:
             self.lastValue = 'NA'
 
-    def get_qoivalue(self):
-        qoi_values = {'metric': self.name, 'last': self.lastValue, 'running': 'NA'}
-        if len(self.submetrics) > 0:
-            subvalues = []
-            for submetric in self.submetrics:
-                subvalues.append(submetric.get_qoivalue())
-            qoi_values['submetrics'] = subvalues
-
-        return qoi_values
+    # def get_qoivalue(self):
+    #     qoi_values = {'metric': self.name, 'last': self.lastValue, 'running': 'NA'}
+    #     if len(self.submetrics) > 0:
+    #         subvalues = []
+    #         for submetric in self.submetrics:
+    #             subvalues.append(submetric.get_qoivalue())
+    #         qoi_values['submetrics'] = subvalues
+    #
+    #     return qoi_values

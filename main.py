@@ -13,7 +13,7 @@ MAX_LOG_ENTRIES = 20
 logger = logging.getLogger('semanticenrichment')
 logger.setLevel(logging.DEBUG)
 
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s', '%Y-%m-%dT%H:%M:%SZ')
 
 file_handler = logging.FileHandler('semanticenrichment.log')
 file_handler.setLevel(logging.DEBUG)
