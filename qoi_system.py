@@ -1,3 +1,4 @@
+import uuid
 from metrics.plausibilitymetric import PlausibilityMetric
 from metrics.completenessmetric import CompletenessMetric
 from metrics.timelinessmetric import TimelinessMetric
@@ -35,11 +36,16 @@ class QoiSystem:
 
     # iterate through all metrics to get qoi vector
     def get_qoivector(self):
-        # qoivector = {}
-        # for m in self.metrics:
-        #     qoivector[m.get_metricname()] = m.get_qoivalue()
         qoilist = []
         for m in self.metrics:
             qoilist.append(m.get_qoivalue())
-            print(m.get_ngsi())
         return qoilist
+
+    def get_qoivector_ngsi(self):
+        qoi_ngsi = {
+            "id": "urn:ngsi-ld:QoI:" + self.metadata['id'],
+            "type": "QoI"
+        }
+        for m in self.metrics:
+            qoi_ngsi[m.name] = m.get_ngsi()
+        return qoi_ngsi

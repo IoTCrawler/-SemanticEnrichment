@@ -53,7 +53,7 @@ class AbstractMetric(object):
                 "type": "Property",
                 "for":{
                     "type": "Relationship",
-                    "object": "urn:ngsi-ld:" + self.qoi_system.metadata['id'] + ":" + self.field if self.field is not "sensor" else ""
+                    "object": self.qoi_system.metadata['id'] + [":" + self.field if self.field is not "sensor" else ""][0]
                 },
                 "last": {
                     "type": "Property",
@@ -65,21 +65,6 @@ class AbstractMetric(object):
                 }
             }
         }
+        for submetric in self.submetrics:
+            ngsi[submetric.name] = submetric.get_ngsi()
         return ngsi
-        # TODO submetrics missing
-
-        # "plausibility": {
-        #     "type": "Property",
-        #     "for":{
-        #         "type": "Relationship",
-        #         "object": "urn:ngsi-ld:"
-        #     },
-        #     "last": {
-        #         "type": "Property",
-        #         "value": ""
-        #     },
-        #     "running": {
-        #         "type": "Property",
-        #         "value": ""
-        #     }
-        # }

@@ -1,4 +1,4 @@
-import datetime
+import requests
 import logging
 from qoi_system import QoiSystem
 from datasource_manager import DatasourceManager
@@ -6,6 +6,9 @@ from datasource_manager import DatasourceManager
 logger = logging.getLogger('semanticenrichment')
 
 # TODO shift broker, callback, etc. options into a config file
+BROKER_HOST = "155.54.95.248"
+BROKER_PORT = 9090
+
 class SemanticEnrichment:
 
     def __init__(self):
@@ -28,18 +31,21 @@ class SemanticEnrichment:
 
         # Todo save qoi data to MDR
         qoidata = self.qoisystem_map[data['id']].get_qoivector()
-        print("format qoi data as ngsi-ld", qoidata)
-        print(data['id'])
-        completeness = [obj for obj in qoidata if obj['metric']=='completeness']
+        qoi_ngsi = self.qoisystem_map[data['id']].get_qoivector_ngsi()
+        logger.debug("Formatting qoi data as ngsi-ld: " + str(qoi_ngsi))
+        # TODO context element missing
         # TODO realtionship to be added to the dataset to link QoI
         ngsi = {
             "hasQuality": {
                 "type": "Relationship",
-                "object": data['id'] + "_QoI"
+                "object": qoi_ngsi['id']
             }
         }
-        # TODO create ngsi formatted qoi
-        
+        print("Add QoI data to metadata: " + str(ngsi))
+        # TODO save qoi data
+        # self.create_ngsi_entity(qoi_ngsi)
+        # TODO save relationship for qoi data
+        # self.patch_ngsi_entity(ngsi, data['id'], data['type'])
 
 
     def get_qoivector(self, sourceid):
@@ -56,3 +62,31 @@ class SemanticEnrichment:
 
     def get_datasources(self):
         return self.datasource_manager.get_datasources()
+
+
+    def create_ngsi_entity(self, ngsi_msg):
+        print("save message to ngsi broker")
+        headers = {}
+        headers.update({'content-type': 'application/ld+json'})
+        headers.update({'accept': 'application/ld+json'})
+        url = "http://" + BROKER_HOST + ":" + str(BROKER_PORT) + "/ngsi-ld/v1/entities/"
+        r = requests.post(url, json=ngsi_msg, headers=headers)
+        print(r.text)
+        if r.status_code == 409:
+            print("entity exists, patch it")
+            self.patch_ngsi_entity(ngsi_msg)
+
+
+    def patch_ngsi_entity(self, ngsi_msg, eid=None, type=None):
+        headers = {}
+        headers.update({'content-type': 'application/ld+json'})
+        headers.update({'accept': 'application/ld+json'})
+        #for updating entity we have to delete id and type, first do copy if needed somewhere else
+        if not None in (id, type):
+            ngsi_msg_patch = dict(ngsi_msg)
+            ngsi_msg_patch.pop('id')
+            ngsi_msg_patch.pop('type')
+            eid = ngsi_msg['id']
+        url = "http://" + BROKER_HOST + ":" + str(BROKER_PORT) + "/ngsi-ld/v1/entities/" + eid + "/attrs"
+        r = requests.patch(url, json=ngsi_msg_patch, headers=headers)
+        print(r.text)
