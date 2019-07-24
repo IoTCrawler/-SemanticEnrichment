@@ -49,20 +49,19 @@ class AbstractMetric(object):
 
     def get_ngsi(self):
         ngsi = {
-            self.name: {
+            "type": "Property",
+            "value": "NA",      #TODO value set to NA as it cannot be null
+            "for":{
+                "type": "Relationship",
+                "object": self.qoi_system.metadata['id'] + [":" + self.field if self.field is not "sensor" else ""][0]
+            },
+            "last": {
                 "type": "Property",
-                "for":{
-                    "type": "Relationship",
-                    "object": self.qoi_system.metadata['id'] + [":" + self.field if self.field is not "sensor" else ""][0]
-                },
-                "last": {
-                    "type": "Property",
-                    "value": self.lastValue
-                },
-                "running": {
-                    "type": "Property",
-                    "value": self.rp.value()
-                }
+                "value": self.lastValue
+            },
+            "running": {
+                "type": "Property",
+                "value": self.rp.value()
             }
         }
         for submetric in self.submetrics:

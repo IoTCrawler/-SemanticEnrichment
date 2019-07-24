@@ -44,8 +44,18 @@ class QoiSystem:
     def get_qoivector_ngsi(self):
         qoi_ngsi = {
             "id": "urn:ngsi-ld:QoI:" + self.metadata['id'],
-            "type": "QoI"
+            "type": "QoI",
+            "@context":[
+                "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld", {
+                    "QoI":"http://example.org/qoi/QoI",
+                    "running":"http://example.org/qoi/running",
+                    "last":"http://example.org/qoi/last",
+                    "for":"http://example.org/qoi/for"
+                }
+            ]
         }
         for m in self.metrics:
             qoi_ngsi[m.name] = m.get_ngsi()
+            qoi_ngsi['@context'][1][m.name] = "http://example.org/qoi/" + m.name
+
         return qoi_ngsi
