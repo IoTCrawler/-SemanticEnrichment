@@ -66,6 +66,15 @@ class SemanticEnrichment:
     def get_datasources(self):
         return self.datasource_manager.get_datasources()
 
+    def get_metadata(self):
+        return self.datasource_manager.matcher.get_all()
+
+    def delete_metadata(self, mtype):
+        self.datasource_manager.matcher.delete(mtype)
+
+    def add_metadata(self, type, metadata):
+        tmp = {'type': type, 'fields': metadata}
+        self.datasource_manager.matcher.store(tmp)
 
     def add_ngsi_attribute(self, ngsi_msg, eid):
         logger.debug("Add ngsi attribute to entity " + eid + ":" + str(ngsi_msg))

@@ -12,7 +12,7 @@ class TimelinessMetric(AbstractMetric):
         pass
 
     # def get_qoivalue(self):
-    #     qoi_values = {'metric': self.name, 'last': 'NA', 'running': 'NA'}
+    #     qoi_values = {'metric': self.name, 'last': 'NA', 'continous': 'NA'}
     #     if len(self.submetrics) > 0:
     #         subvalues = []
     #         for submetric in self.submetrics:

@@ -48,7 +48,7 @@ class QoiSystem:
             "@context":[
                 "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld", {
                     "QoI":"http://example.org/qoi/QoI",
-                    "running":"http://example.org/qoi/running",
+                    "continous":"http://example.org/qoi/continous",
                     "last":"http://example.org/qoi/last",
                     "for":"http://example.org/qoi/for"
                 }

@@ -85,15 +85,39 @@ def showdatasources():
         datasouces.append(ds)
     return render_template('datasources.html', datasources=datasouces)
 
+@bp.route('/showmetadata', methods=['GET'])
+def showmetadata():
+    metadata = semanticEnrichment.get_metadata()
+    return render_template('metadata.html', metadata=metadata)
+
+@bp.route('/addmetadata', methods=['POST'])
+def addmetadata():
+    type = request.form.get('type')
+    metadata = request.form.get('metadata')
+    if None not in (type, metadata):
+        try:
+            semanticEnrichment.add_metadata(type, metadata)
+        except Exception as e:
+            flash('Error while adding metadata:' + str(e))
+    else:
+        logger.debug("Missing input for adding metadata")
+    return redirect(url_for('.showmetadata'))
+
+@bp.route('/deletemetadata', methods=['POST'])
+def deletemetadata():
+    mtype = request.form.get('mtype')
+    if mtype is not None:
+        logger.info("Delete metadata: " + mtype)
+        semanticEnrichment.delete_metadata(mtype)
+    return redirect(url_for('.showmetadata'))
 
 # @cherrypy.tools.json_in()
 @bp.route('/callback', methods=['POST'])
 def callback():
     logger.debug("callback called" + str(request.get_json()))
-    # TODO parse and add to datasource manager
-
     # split to data and metadata
-    data, metadata = ngsi_ld.ngsi_parser.parse_ngsi(request.get_json())
+    data, metadata = ngsi_ld.ngsi_parser.parse_ngsi(request.get_json()) # TODO check if metadata contains NA values, if so try to find some metadata
+    print(metadata)
     # create data source in data source manager
     semanticEnrichment.notify_datasource(metadata)
     semanticEnrichment.receive(data)
@@ -104,6 +128,9 @@ def callback():
 app = Flask(__name__)
 app.secret_key = 'e3645c25b6d5bf67ae6da68c824e43b530e0cb43b0b9432b'
 app.register_blueprint(bp, url_prefix='/semanticenrichment')
+
+
+
 
 
 if __name__ == "__main__":

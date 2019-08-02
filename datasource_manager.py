@@ -1,6 +1,7 @@
 import requests
 import logging
 from other.exceptions import BrokerError
+from other.metadata_matcher import MetadataMatcher
 
 logger = logging.getLogger('semanticenrichment')
 
@@ -33,6 +34,7 @@ class DatasourceManager:
         self.headers = {}
         self.headers.update({'content-type': 'application/ld+json'})
         self.headers.update({'accept': 'application/ld+json'})
+        self.matcher = MetadataMatcher()
         self.get_active_subscriptions()
 
     def add_subscription(self, host, port, subscription):
@@ -58,6 +60,9 @@ class DatasourceManager:
         logger.debug("deleting subscription " + subid + ": " + r.text)
 
     def add_datasource(self, data):
+        # checking metadata for 'NA' fields, if NA field try to find some metadata
+        self.matcher.check_metadata(data)
+
         # check if datasource is already registered, if so update metadata
         dsid = data['id']
         if dsid in self.datasources:
@@ -82,12 +87,14 @@ class DatasourceManager:
             # get old subscriptions for semantic enrichment (starting with 'SE_')
             server_url = host['host'] + ":" + str(host['port']) + "/ngsi-ld/v1/subscriptions/"
             r = requests.get(server_url, headers=self.headers)
-            ids = ()
-            if r.status_code != 500:
-                for data in r.json():
-                    if data['id'].startswith('SE_', data['id'].rfind(':') + 1):
-                        sub = Subscription(data['id'], host['host'], host['port'], data)
-                        self.subscriptions[sub.id] = sub
-            else:
-                logger.error("Error getting active subscriptions: " + r.text)
-            return ids
+            try:
+                if r.status_code != 500:
+                    for data in r.json():
+                        print(r.json())
+                        if data['id'].startswith('SE_', data['id'].rfind(':') + 1):
+                            sub = Subscription(data['id'], host['host'], host['port'], data)
+                            self.subscriptions[sub.id] = sub
+                else:
+                    logger.error("Error getting active subscriptions: " + r.text)
+            except Exception as e:
+                logger.error("Error getting active subscriptions: " + str(e))

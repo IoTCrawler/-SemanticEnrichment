@@ -12,7 +12,7 @@
       "type": "Property",
       "value": ""
     },
-    "running": {
+    "continous": {
       "type": "Property",
       "value": ""
     }
@@ -25,4 +25,4 @@
 
 
 
-[{'metric': 'plausibility_mac', 'last': 'NA', 'running': 'NA'}, {'metric': 'plausibility_temperature', 'last': 1, 'running': '1.00'}, {'metric': 'plausibility_humidity', 'last': 1, 'running': '1.00'}, {'metric': 'plausibility_iaq', 'last': 1, 'running': '1.00'}, {'metric': 'completeness', 'last': 1, 'running': '1.00'}, {'metric': 'timeliness', 'last': 'NA', 'running': 'NA', 'submetrics': [{'metric': 'age', 'last': -3599.307008, 'running': 'NA'}, {'metric': 'frequency', 'last': 'NA', 'running': 'NA'}]}]
+[{'metric': 'plausibility_mac', 'last': 'NA', 'continous': 'NA'}, {'metric': 'plausibility_temperature', 'last': 1, 'running': '1.00'}, {'metric': 'plausibility_humidity', 'last': 1, 'running': '1.00'}, {'metric': 'plausibility_iaq', 'last': 1, 'running': '1.00'}, {'metric': 'completeness', 'last': 1, 'running': '1.00'}, {'metric': 'timeliness', 'last': 'NA', 'running': 'NA', 'submetrics': [{'metric': 'age', 'last': -3599.307008, 'running': 'NA'}, {'metric': 'frequency', 'last': 'NA', 'running': 'NA'}]}]

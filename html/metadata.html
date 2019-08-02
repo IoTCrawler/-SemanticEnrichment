@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+
+{% block body %}
+<p>
+    Show preconfigured metadata:
+</p>
+
+<form method="POST" action="addmetadata">
+    <label for="type">Type:</label>
+    <input type="text" name="type" id="type"
+           placeholder="temperature"
+           size="30"
+           required value="temperature">
+    <label for="metadata">Metadata:</label>
+    <textarea id="metadata" name="metadata" required>{'min': 'NA', 'max': 'NA', 'valuetype': 'NA'}</textarea>
+    <br>
+    <button type="submit">
+        Create metadata
+    </button>
+</form>
+
+{% if metadata %}
+<div style="overflow:auto; text-align: left">
+    <p>
+    <table>
+        <tr>
+            <th>Delete</th>
+            <th>Type</th>
+            <th>Metadata</th>
+        </tr>
+        {% for m in metadata %}
+        <tr><td><form action="deletemetadata" method="POST"><button type="submit" name="mtype" value={{ m.type }}>Delete</button></form></td><td>{{ m.type }}</td><td>{{ m.fields }}</td></tr>
+        {% endfor %}
+    </table>
+    </p>
+</div>
+{% endif %}
+
+{% endblock %}
