@@ -1,11 +1,13 @@
 import logging
 from collections import deque
 
+
 class Entry:
     def __init__(self, timestamp, level, message):
         self.timestamp = timestamp
         self.level = level
         self.message = message
+
 
 class DequeLoggerHandler(logging.Handler):
 
@@ -25,4 +27,3 @@ class DequeLoggerHandler(logging.Handler):
         copy = self.entries.copy()
         copy.reverse()
         return copy
-

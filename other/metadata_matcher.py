@@ -6,49 +6,47 @@ from fuzzywuzzy import fuzz
 logger = logging.getLogger('semanticenrichment')
 
 metadata_example = [
-        {
-            'type': 'mac',
-            'fields': {
-                'min':'NA',
-                'max':'NA',
-                'valuetype':'NA'
-            }
-        },
-        {
-            'type': 'temperature1',
-            'fields': {
-                'min':-20,
-                'max':50,
-                'valuetype':'float'
-           }
-        },
-        {
-            'type': 'temp',
-            'fields': {
-                'min':-20,
-                'max':50,
-                'valuetype':'float'
-            }
-        },
-        {
-            'type': 'humidity',
-            'fields': {
-                'min':0,
-                'max':100,
-                'valuetype':'NA'
-            }
-        },
-        {
-            'type': 'iaq',
-            'fields': {
-                'min':0,
-                'max':500,
-                'valuetype':'NA'
-            }
+    {
+        'type': 'mac',
+        'fields': {
+            'min': 'NA',
+            'max': 'NA',
+            'valuetype': 'NA'
         }
-    ]
-
-
+    },
+    {
+        'type': 'temperature1',
+        'fields': {
+            'min': -20,
+            'max': 50,
+            'valuetype': 'float'
+        }
+    },
+    {
+        'type': 'temp',
+        'fields': {
+            'min': -20,
+            'max': 50,
+            'valuetype': 'float'
+        }
+    },
+    {
+        'type': 'humidity',
+        'fields': {
+            'min': 0,
+            'max': 100,
+            'valuetype': 'NA'
+        }
+    },
+    {
+        'type': 'iaq',
+        'fields': {
+            'min': 0,
+            'max': 500,
+            'valuetype': 'NA'
+        }
+    }
+]
 
 
 class MetadataMatcher(object):
@@ -66,15 +64,15 @@ class MetadataMatcher(object):
     def store(self, metadata):
         if isinstance(metadata, list):
             for meta in metadata:
-                result = self.metadata.update({"type" : meta['type']}, meta, upsert=True)
+                self.metadata.update({"type": meta['type']}, meta, upsert=True)
         else:
-            result = self.metadata.update({"type" : metadata['type']}, metadata, upsert=True)
+            self.metadata.update({"type": metadata['type']}, metadata, upsert=True)
 
     def get_all(self):
         return list(self.metadata.find({}, {"_id": False}))
 
     def delete(self, type):
-        self.metadata.delete_many( { "type": type })
+        self.metadata.delete_many({"type": type})
 
     def match(self, type):
         # first get types from db as matching is done locally
@@ -85,10 +83,10 @@ class MetadataMatcher(object):
         highestType = None
         result = {}
         for dbtype in types:
-            ratio = fuzz.ratio(dbtype.lower(),type.lower())
-            partial_ratio = fuzz.partial_ratio(dbtype.lower(),type.lower())
-            token_sort_ratio = fuzz.token_sort_ratio(dbtype,type)
-            token_set_ratio = fuzz.token_set_ratio(dbtype,type)
+            ratio = fuzz.ratio(dbtype.lower(), type.lower())
+            partial_ratio = fuzz.partial_ratio(dbtype.lower(), type.lower())
+            token_sort_ratio = fuzz.token_sort_ratio(dbtype, type)
+            token_set_ratio = fuzz.token_set_ratio(dbtype, type)
             sumRatio = statistics.median([ratio, partial_ratio, token_sort_ratio, token_set_ratio])
             result[dbtype] = sumRatio
 
@@ -102,8 +100,7 @@ class MetadataMatcher(object):
                 if result[key] > check:
                     print("Too similar", key)
                     return None
-        return self.metadata.find_one( {"type" : highestType}, {"_id": False} )
-
+        return self.metadata.find_one({"type": highestType}, {"_id": False})
 
     @staticmethod
     def check_metadata(metadata):
@@ -116,6 +113,7 @@ class MetadataMatcher(object):
                 for f in metadata['fields'][field]:
                     if metadata['fields'][field][f] == 'NA':
                         metadata['fields'][field][f] = compatible_metadata['fields'][f]
+
 
 if __name__ == "__main__":
     matcher = MetadataMatcher()

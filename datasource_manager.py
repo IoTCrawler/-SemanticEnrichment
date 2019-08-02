@@ -5,6 +5,7 @@ from other.metadata_matcher import MetadataMatcher
 
 logger = logging.getLogger('semanticenrichment')
 
+
 class Subscription:
     def __init__(self, subid, host, port, subscription):
         self.id = subid
@@ -21,7 +22,6 @@ class DataSource:
 
     def update(self, metadata):
         self.metadata.update(metadata)
-
 
 
 class DatasourceManager:

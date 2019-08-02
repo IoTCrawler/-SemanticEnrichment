@@ -34,7 +34,8 @@ class AbstractMetric(object):
         self.update_metric(data)
 
     def get_qoivalue(self):
-        qoi_values = {'metric': self.name, 'for': self.field, 'last': self.lastValue, 'continous': 'NA' if self.rp.value() is 'NA' else '{:.2f}'.format(self.rp.value())}
+        qoi_values = {'metric': self.name, 'for': self.field, 'last': self.lastValue,
+                      'continous': 'NA' if self.rp.value() is 'NA' else '{:.2f}'.format(self.rp.value())}
         if len(self.submetrics) > 0:
             subvalues = []
             for submetric in self.submetrics:
@@ -46,12 +47,11 @@ class AbstractMetric(object):
     def get_metricname(self):
         return self.name
 
-
     def get_ngsi(self):
         ngsi = {
             "type": "Property",
-            "value": "NA",      #TODO value set to NA as it cannot be null
-            "for":{
+            "value": "NA",  # TODO value set to NA as it cannot be null
+            "for": {
                 "type": "Relationship",
                 "object": self.qoi_system.metadata['id'] + [":" + self.field if self.field is not "sensor" else ""][0]
             },

@@ -40,7 +40,6 @@ def index():
 @bp.route('/showsubscriptions', methods=['GET', 'POST'])
 def showsubscriptions():
     subscriptions = semanticEnrichment.get_subscriptions()
-    formdata = None
     with open('jsonfiles/UMU_Subscription_TemperatureSensor.json') as jFile:
         data = json.load(jFile)
         data['id'] = data['id'] + str(uuid.uuid4())
@@ -49,9 +48,11 @@ def showsubscriptions():
 
     return render_template('subscriptions.html', formdata=formdata, subscriptions=subscriptions.values())
 
+
 @bp.route('/log', methods=['GET'])
 def showlog():
     return render_template('log.html', logmessages=deque_handler.get_entries(), maxentries=deque_handler.maxentries)
+
 
 @bp.route('/addsubscription', methods=['POST'])
 def addsubscription():
@@ -85,10 +86,12 @@ def showdatasources():
         datasouces.append(ds)
     return render_template('datasources.html', datasources=datasouces)
 
+
 @bp.route('/showmetadata', methods=['GET'])
 def showmetadata():
     metadata = semanticEnrichment.get_metadata()
     return render_template('metadata.html', metadata=metadata)
+
 
 @bp.route('/addmetadata', methods=['POST'])
 def addmetadata():
@@ -103,6 +106,7 @@ def addmetadata():
         logger.debug("Missing input for adding metadata")
     return redirect(url_for('.showmetadata'))
 
+
 @bp.route('/deletemetadata', methods=['POST'])
 def deletemetadata():
     mtype = request.form.get('mtype')
@@ -111,12 +115,14 @@ def deletemetadata():
         semanticEnrichment.delete_metadata(mtype)
     return redirect(url_for('.showmetadata'))
 
+
 # @cherrypy.tools.json_in()
 @bp.route('/callback', methods=['POST'])
 def callback():
     logger.debug("callback called" + str(request.get_json()))
     # split to data and metadata
-    data, metadata = ngsi_ld.ngsi_parser.parse_ngsi(request.get_json()) # TODO check if metadata contains NA values, if so try to find some metadata
+    data, metadata = ngsi_ld.ngsi_parser.parse_ngsi(
+        request.get_json())  # TODO check if metadata contains NA values, if so try to find some metadata
     print(metadata)
     # create data source in data source manager
     semanticEnrichment.notify_datasource(metadata)
@@ -128,10 +134,6 @@ def callback():
 app = Flask(__name__)
 app.secret_key = 'e3645c25b6d5bf67ae6da68c824e43b530e0cb43b0b9432b'
 app.register_blueprint(bp, url_prefix='/semanticenrichment')
-
-
-
-
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8081, debug=False)

@@ -9,6 +9,7 @@ logger = logging.getLogger('semanticenrichment')
 BROKER_HOST = "155.54.95.248"
 BROKER_PORT = 9090
 
+
 class SemanticEnrichment:
 
     def __init__(self):
@@ -39,9 +40,9 @@ class SemanticEnrichment:
                 "type": "Relationship",
                 "object": qoi_ngsi['id']
             },
-            "@context":[
-                "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",{
-                    "hasQuality":"http://example.org/qoi/hasQuality"
+            "@context": [
+                "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld", {
+                    "hasQuality": "http://example.org/qoi/hasQuality"
                 }
             ]
         }
@@ -49,7 +50,6 @@ class SemanticEnrichment:
         self.create_ngsi_entity(qoi_ngsi)
         # save relationship for qoi data
         self.add_ngsi_attribute(ngsi, data['id'])
-
 
     def get_qoivector(self, sourceid):
         return self.qoisystem_map[sourceid].get_qoivector()
@@ -85,8 +85,7 @@ class SemanticEnrichment:
         r = requests.post(url, json=ngsi_msg, headers=headers)
         if r.status_code != 204:
             logger.debug("Attribute exists, patch it")
-            r = requests.patch(url, json=ngsi_msg, headers=headers)
-
+            requests.patch(url, json=ngsi_msg, headers=headers)
 
     def create_ngsi_entity(self, ngsi_msg):
         logger.debug("Save entity to ngsi broker: " + str(ngsi_msg))
@@ -99,12 +98,11 @@ class SemanticEnrichment:
             logger.debug("Entity exists, patch it")
             self.patch_ngsi_entity(ngsi_msg)
 
-
     def patch_ngsi_entity(self, ngsi_msg):
         headers = {}
         headers.update({'content-type': 'application/ld+json'})
         headers.update({'accept': 'application/ld+json'})
-        #for updating entity we have to delete id and type, first do copy if needed somewhere else
+        # for updating entity we have to delete id and type, first do copy if needed somewhere else
         ngsi_msg_patch = dict(ngsi_msg)
         ngsi_msg_patch.pop('id')
         ngsi_msg_patch.pop('type', None)

@@ -1,9 +1,8 @@
-import uuid
-from metrics.plausibilitymetric import PlausibilityMetric
 from metrics.completenessmetric import CompletenessMetric
-from metrics.timelinessmetric import TimelinessMetric
+from metrics.plausibilitymetric import PlausibilityMetric
 from metrics.timelinessagemmetric import TimelinessAgeMetric
 from metrics.timelinessfrequencymetric import TimelinessFrequencyMetric
+from metrics.timelinessmetric import TimelinessMetric
 
 
 class QoiSystem:
@@ -45,12 +44,12 @@ class QoiSystem:
         qoi_ngsi = {
             "id": "urn:ngsi-ld:QoI:" + self.metadata['id'],
             "type": "QoI",
-            "@context":[
+            "@context": [
                 "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld", {
-                    "QoI":"http://example.org/qoi/QoI",
-                    "continous":"http://example.org/qoi/continous",
-                    "last":"http://example.org/qoi/last",
-                    "for":"http://example.org/qoi/for"
+                    "QoI": "http://example.org/qoi/QoI",
+                    "continous": "http://example.org/qoi/continous",
+                    "last": "http://example.org/qoi/last",
+                    "for": "http://example.org/qoi/for"
                 }
             ]
         }
