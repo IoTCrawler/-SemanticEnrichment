@@ -1,6 +1,5 @@
 import requests
 import logging
-import confuse
 from configuration import Config
 from other.exceptions import BrokerError
 from other.metadata_matcher import MetadataMatcher
