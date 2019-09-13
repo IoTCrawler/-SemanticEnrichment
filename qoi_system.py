@@ -3,6 +3,7 @@ from metrics.plausibilitymetric import PlausibilityMetric
 from metrics.timelinessagemmetric import TimelinessAgeMetric
 from metrics.timelinessfrequencymetric import TimelinessFrequencyMetric
 from metrics.timelinessmetric import TimelinessMetric
+from metrics.concordancemetric import ConcordanceMetric
 
 
 class QoiSystem:
@@ -13,6 +14,7 @@ class QoiSystem:
         # check values in metadata
         for field in metadata['fields']:
             self.add_metric(PlausibilityMetric(self, field))
+            self.add_metric(ConcordanceMetric(self, field))
 
         self.add_metric(CompletenessMetric(self))
         timeliness = TimelinessMetric(self)

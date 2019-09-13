@@ -1,5 +1,7 @@
 import requests
 import logging
+import confuse
+from configuration import Config
 from other.exceptions import BrokerError
 from other.metadata_matcher import MetadataMatcher
 
@@ -29,7 +31,7 @@ class DatasourceManager:
     def __init__(self):
         self.subscriptions = {}
         self.datasources = {}
-        self.known_ngsi_hosts = [{"host": "http://155.54.95.248", "port": 9090}]
+        self.known_ngsi_hosts = [{"host": Config.get('NGSI', 'host'),"port": Config.get('NGSI', 'port')}]
 
         self.headers = {}
         self.headers.update({'content-type': 'application/ld+json'})
@@ -86,6 +88,7 @@ class DatasourceManager:
         for host in self.known_ngsi_hosts:
             # get old subscriptions for semantic enrichment (starting with 'SE_')
             server_url = host['host'] + ":" + str(host['port']) + "/ngsi-ld/v1/subscriptions/"
+            print(server_url)
             r = requests.get(server_url, headers=self.headers)
             try:
                 if r.status_code != 500:

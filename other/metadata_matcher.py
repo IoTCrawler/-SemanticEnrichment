@@ -2,6 +2,7 @@ import pymongo
 import statistics
 import logging
 from fuzzywuzzy import fuzz
+from configuration import Config
 
 logger = logging.getLogger('semanticenrichment')
 
@@ -52,12 +53,13 @@ metadata_example = [
 class MetadataMatcher(object):
 
     def __init__(self):
-        self.client = pymongo.MongoClient('localhost', 27017)
+        self.client = pymongo.MongoClient(Config.get('mongodb', 'host'), int(Config.get('mongodb', 'port')))
         self.db = self.client['se_db']
         self.metadata = self.db.metadata
         self.metadata.create_index([('type', pymongo.TEXT)])
         # TODO initialise with example data
-        self.store(metadata_example)
+        if bool(Config.get('mongodb', 'initialise')):
+            self.store(metadata_example)
 
     # expects metadata in the format used internally in semantic enrichment
     # splits to fields and saves them to mongodb

@@ -6,8 +6,8 @@ from flask import Flask, redirect, render_template, url_for, request, Blueprint,
 from semanticenrichment import SemanticEnrichment
 from other.exceptions import BrokerError
 from other.logging import DequeLoggerHandler
+from configuration import Config
 
-MAX_LOG_ENTRIES = 20
 
 # Configure logging
 logger = logging.getLogger('semanticenrichment')
@@ -19,7 +19,7 @@ file_handler = logging.FileHandler('semanticenrichment.log')
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(formatter)
 
-deque_handler = DequeLoggerHandler(MAX_LOG_ENTRIES)
+deque_handler = DequeLoggerHandler(int(Config.get('semanticenrichment', 'maxlogentries')))
 deque_handler.setLevel(logging.DEBUG)
 deque_handler.setFormatter(formatter)
 
@@ -136,7 +136,7 @@ app.secret_key = 'e3645c25b6d5bf67ae6da68c824e43b530e0cb43b0b9432b'
 app.register_blueprint(bp, url_prefix='/semanticenrichment')
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8081, debug=False)
+    app.run(host=Config.get('semanticenrichment', 'host'), port=int(Config.get('semanticenrichment', 'port')), debug=False)
 
 # TODO
 # which metric for whole stream, which for every single value?
