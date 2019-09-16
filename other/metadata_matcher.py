@@ -70,8 +70,9 @@ class MetadataMatcher(object):
             self.metadata = self.db.metadata
             self.metadata.create_index([('type', pymongo.TEXT)])
             self.connected_to_db = True
-        except errors.ServerSelectionTimeoutError:
+        except errors.ServerSelectionTimeoutError as e:
             self.connected_to_db = False
+            logger.debug("MetadataMatcher: error while connecting to db " + str(e))
 
     def connected(self):
         if not self.connected_to_db:
