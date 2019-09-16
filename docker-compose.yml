@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  app:
+    container_name: semanticenrichment
+    build: .
+    ports:
+      - "8081:8081"
+    links:
+      - mongodb
+   
+  mongodb:
+    container_name: se_mongodb
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+
