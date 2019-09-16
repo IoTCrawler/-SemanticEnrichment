@@ -83,12 +83,16 @@ class MetadataMatcher(object):
         if self.connected():
             # TODO initialise with example data
             if bool(Config.get('mongodb', 'initialise')):
+                print("hier")
                 self.store(metadata_example)
+        else:
+            timer = threading.Timer(5, self.initialise())
 
     # expects metadata in the format used internally in semantic enrichment
     # splits to fields and saves them to mongodb
     def store(self, metadata):
         if self.connected():
+            # logger.error("save " + metadata)
             if isinstance(metadata, list):
                 for meta in metadata:
                     self.metadata.update({"type": meta['type']}, meta, upsert=True)
@@ -129,7 +133,7 @@ class MetadataMatcher(object):
             for key in result:
                 if key != highestType:
                     if result[key] > check:
-                        print("Too similar", key)
+                        # print("Too similar", key)
                         return None
             return self.metadata.find_one({"type": highestType}, {"_id": False})
         return None
@@ -151,18 +155,18 @@ if __name__ == "__main__":
     matcher = MetadataMatcher()
     # matcher.store(metadata_example)
     # matcher.store(metadata_example)
-    # print(matcher.get_all())
+    print(matcher.get_all())
     # matcher.delete("iaq")
     # print(matcher.get_all())
     # print(matcher.match("temp"))
     # print(matcher.match("environment"))
     # print(matcher.match("urn:ngsi-ld:TemperatureSensor:30:AE:A4:6E:FC:D0"))
-    print("TemperatureSensor:", matcher.match("TemperatureSensor"))
-    print("value:", matcher.match("value"))
-    import time
-    time.sleep(1)
-    print("TemperatureSensor:", matcher.match("TemperatureSensor"))
-    print("value:", matcher.match("value"))
+    # print("TemperatureSensor:", matcher.match("TemperatureSensor"))
+    # print("value:", matcher.match("value"))
+    # import time
+    # time.sleep(1)
+    # print("TemperatureSensor:", matcher.match("TemperatureSensor"))
+    # print("value:", matcher.match("value"))
 
     # tmp = matcher.match("TemperatureSensor")
     # print(tmp)

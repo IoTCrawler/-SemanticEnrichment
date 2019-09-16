@@ -1,5 +1,6 @@
 import requests
 import logging
+import ast
 from qoi_system import QoiSystem
 from datasource_manager import DatasourceManager
 
@@ -72,9 +73,12 @@ class SemanticEnrichment:
     def delete_metadata(self, mtype):
         self.datasource_manager.matcher.delete(mtype)
 
-    def add_metadata(self, type, metadata):
-        tmp = {'type': type, 'fields': metadata}
-        self.datasource_manager.matcher.store(tmp)
+    def add_metadata(self, entitytype, metadata):
+        try:
+            tmp = {'type': entitytype, 'fields': ast.literal_eval(metadata)}
+            self.datasource_manager.matcher.store(tmp)
+        except Exception as e:
+            logger.debug("Error while adding metadata: " + str(e))
 
     def add_ngsi_attribute(self, ngsi_msg, eid):
         logger.debug("Add ngsi attribute to entity " + eid + ":" + str(ngsi_msg))

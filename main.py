@@ -123,7 +123,7 @@ def callback():
     # split to data and metadata
     data, metadata = ngsi_ld.ngsi_parser.parse_ngsi(
         request.get_json())  # TODO check if metadata contains NA values, if so try to find some metadata
-    print(metadata)
+    # print(metadata)
     # create data source in data source manager
     semanticEnrichment.notify_datasource(metadata)
     semanticEnrichment.receive(data)
