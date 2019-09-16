@@ -1,6 +1,8 @@
 import pymongo
+from pymongo import errors
 import statistics
 import logging
+import threading
 from fuzzywuzzy import fuzz
 from configuration import Config
 
@@ -53,68 +55,95 @@ metadata_example = [
 class MetadataMatcher(object):
 
     def __init__(self):
-        self.client = pymongo.MongoClient(Config.get('mongodb', 'host'), int(Config.get('mongodb', 'port')))
-        self.db = self.client['se_db']
-        self.metadata = self.db.metadata
-        self.metadata.create_index([('type', pymongo.TEXT)])
-        # TODO initialise with example data
-        if bool(Config.get('mongodb', 'initialise')):
-            self.store(metadata_example)
+        self.connected_to_db = False
+        self.connect_in_background()
+        self.initialise()
+
+    def connect_in_background(self):
+        t = threading.Thread(target=self.connect)
+        t.start()
+
+    def connect(self):
+        try:
+            self.client = pymongo.MongoClient(Config.get('mongodb', 'host'), int(Config.get('mongodb', 'port')))
+            self.db = self.client['se_db']
+            self.metadata = self.db.metadata
+            self.metadata.create_index([('type', pymongo.TEXT)])
+            self.connected_to_db = True
+        except errors.ServerSelectionTimeoutError:
+            self.connected_to_db = False
+
+    def connected(self):
+        if not self.connected_to_db:
+            self.connect_in_background()
+        return self.connected_to_db
+
+    def initialise(self):
+        if self.connected():
+            # TODO initialise with example data
+            if bool(Config.get('mongodb', 'initialise')):
+                self.store(metadata_example)
 
     # expects metadata in the format used internally in semantic enrichment
     # splits to fields and saves them to mongodb
     def store(self, metadata):
-        if isinstance(metadata, list):
-            for meta in metadata:
-                self.metadata.update({"type": meta['type']}, meta, upsert=True)
-        else:
-            self.metadata.update({"type": metadata['type']}, metadata, upsert=True)
+        if self.connected():
+            if isinstance(metadata, list):
+                for meta in metadata:
+                    self.metadata.update({"type": meta['type']}, meta, upsert=True)
+            else:
+                self.metadata.update({"type": metadata['type']}, metadata, upsert=True)
 
     def get_all(self):
-        return list(self.metadata.find({}, {"_id": False}))
+        if self.connected():
+            return list(self.metadata.find({}, {"_id": False}))
+        return None
 
     def delete(self, type):
-        self.metadata.delete_many({"type": type})
+        if self.connected():
+            self.metadata.delete_many({"type": type})
 
     def match(self, type):
-        # first get types from db as matching is done locally
-        types = [type for type in self.metadata.distinct('type')]
+        if self.connected():
+            # first get types from db as matching is done locally
+            types = [type for type in self.metadata.distinct('type')]
 
-        # do matching, see description here: https://www.datacamp.com/community/tutorials/fuzzy-string-python
-        highestScore = 0
-        highestType = None
-        result = {}
-        for dbtype in types:
-            ratio = fuzz.ratio(dbtype.lower(), type.lower())
-            partial_ratio = fuzz.partial_ratio(dbtype.lower(), type.lower())
-            token_sort_ratio = fuzz.token_sort_ratio(dbtype, type)
-            token_set_ratio = fuzz.token_set_ratio(dbtype, type)
-            sumRatio = statistics.median([ratio, partial_ratio, token_sort_ratio, token_set_ratio])
-            result[dbtype] = sumRatio
+            # do matching, see description here: https://www.datacamp.com/community/tutorials/fuzzy-string-python
+            highestScore = 0
+            highestType = None
+            result = {}
+            for dbtype in types:
+                ratio = fuzz.ratio(dbtype.lower(), type.lower())
+                partial_ratio = fuzz.partial_ratio(dbtype.lower(), type.lower())
+                token_sort_ratio = fuzz.token_sort_ratio(dbtype, type)
+                token_set_ratio = fuzz.token_set_ratio(dbtype, type)
+                sumRatio = statistics.median([ratio, partial_ratio, token_sort_ratio, token_set_ratio])
+                result[dbtype] = sumRatio
 
-            if sumRatio > highestScore:
-                highestScore = sumRatio
-                highestType = dbtype
+                if sumRatio > highestScore:
+                    highestScore = sumRatio
+                    highestType = dbtype
 
-        check = highestScore * 0.7
-        for key in result:
-            if key != highestType:
-                if result[key] > check:
-                    print("Too similar", key)
-                    return None
-        return self.metadata.find_one({"type": highestType}, {"_id": False})
+            check = highestScore * 0.7
+            for key in result:
+                if key != highestType:
+                    if result[key] > check:
+                        print("Too similar", key)
+                        return None
+            return self.metadata.find_one({"type": highestType}, {"_id": False})
+        return None
 
-    @staticmethod
-    def check_metadata(metadata):
-        logger.debug("checking metadata " + str(metadata))
-        metadata_matcher = MetadataMatcher()
-        for field in metadata['fields']:
-            compatible_metadata = metadata_matcher.match(field)
-            if compatible_metadata is not None:
-                logger.debug("Found compatible metadata " + str(compatible_metadata))
-                for f in metadata['fields'][field]:
-                    if metadata['fields'][field][f] == 'NA':
-                        metadata['fields'][field][f] = compatible_metadata['fields'][f]
+    def check_metadata(self, metadata):
+        if self.connected():
+            logger.debug("checking metadata " + str(metadata))
+            # metadata_matcher = MetadataMatcher()
+            for field in metadata['fields']:
+                compatible_metadata = self.match(field)
+                if compatible_metadata is not None:
+                    logger.debug("Found compatible metadata " + str(compatible_metadata))
+                    for f in metadata['fields'][field]:
+                        if metadata['fields'][field][f] == 'NA':
+                            metadata['fields'][field][f] = compatible_metadata['fields'][f]
 
 
 if __name__ == "__main__":
@@ -127,6 +156,10 @@ if __name__ == "__main__":
     # print(matcher.match("temp"))
     # print(matcher.match("environment"))
     # print(matcher.match("urn:ngsi-ld:TemperatureSensor:30:AE:A4:6E:FC:D0"))
+    print("TemperatureSensor:", matcher.match("TemperatureSensor"))
+    print("value:", matcher.match("value"))
+    import time
+    time.sleep(1)
     print("TemperatureSensor:", matcher.match("TemperatureSensor"))
     print("value:", matcher.match("value"))
 
