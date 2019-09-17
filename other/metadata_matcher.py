@@ -56,14 +56,24 @@ class MetadataMatcher(object):
 
     def __init__(self):
         self.connected_to_db = False
-        # self.connect_in_background()
+        self.background_thread = None
+        self.initialise()
+
+    def create_background_thread(self):
+        if self.background_thread is not None:
+            if not self.background_thread.is_alive():
+                self.start_background_thread()
+        else:
+            self.start_background_thread()
+
+    def start_background_thread(self):
+        print("start thread")
         self.background_thread = threading.Thread(target=self.connect)
         self.background_thread.start()
-        self.initialise()
 
     def connect(self):
         try:
-            self.client = pymongo.MongoClient(Config.get('mongodb', 'host'), int(Config.get('mongodb', 'port')))
+            self.client = pymongo.MongoClient(Config.get('mongodb', 'host'), int(Config.get('mongodb', 'port')), serverSelectionTimeoutMS=0.5)
             self.db = self.client['se_db']
             self.metadata = self.db.metadata
             self.metadata.create_index([('type', pymongo.TEXT)])
@@ -74,11 +84,10 @@ class MetadataMatcher(object):
 
     def connected(self):
         if not self.connected_to_db:
-            if not self.background_thread.isAlive():
-                self.background_thread.start()
+            self.create_background_thread()
         return self.connected_to_db
 
-    def initialise(self, callby=False):
+    def initialise(self):
         if self.connected():
             # TODO initialise with example data
             if bool(Config.get('mongodb', 'initialise')):
