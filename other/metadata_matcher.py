@@ -56,12 +56,10 @@ class MetadataMatcher(object):
 
     def __init__(self):
         self.connected_to_db = False
-        self.connect_in_background()
+        # self.connect_in_background()
+        self.background_thread = threading.Thread(target=self.connect)
+        self.background_thread.start()
         self.initialise()
-
-    def connect_in_background(self):
-        t = threading.Thread(target=self.connect)
-        t.start()
 
     def connect(self):
         try:
@@ -76,17 +74,19 @@ class MetadataMatcher(object):
 
     def connected(self):
         if not self.connected_to_db:
-            self.connect_in_background()
+            if not self.background_thread.isAlive():
+                self.background_thread.start()
         return self.connected_to_db
 
-    def initialise(self):
+    def initialise(self, callby=False):
         if self.connected():
             # TODO initialise with example data
             if bool(Config.get('mongodb', 'initialise')):
-                print("hier")
                 self.store(metadata_example)
         else:
-            timer = threading.Timer(5, self.initialise())
+            #database not connected yet, try again in 5s
+            timer = threading.Timer(5.0, self.initialise)
+            timer.start()
 
     # expects metadata in the format used internally in semantic enrichment
     # splits to fields and saves them to mongodb
@@ -152,6 +152,11 @@ class MetadataMatcher(object):
 
 
 if __name__ == "__main__":
+    # def hello():
+    #     print("hello, world")
+    # timer = threading.Timer(5.0, self.initialise(True))
+    # timer.start()
+
     matcher = MetadataMatcher()
     # matcher.store(metadata_example)
     # matcher.store(metadata_example)
