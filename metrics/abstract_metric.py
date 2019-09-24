@@ -35,7 +35,7 @@ class AbstractMetric(object):
 
     def get_qoivalue(self):
         qoi_values = {'metric': self.name, 'for': self.field, 'last': self.lastValue,
-                      'continous': 'NA' if self.rp.value() is 'NA' else '{:.2f}'.format(self.rp.value())}
+                      'continuous': 'NA' if self.rp.value() is 'NA' else '{:.2f}'.format(self.rp.value())}
         if len(self.submetrics) > 0:
             subvalues = []
             for submetric in self.submetrics:
@@ -59,7 +59,7 @@ class AbstractMetric(object):
                 "type": "Property",
                 "value": self.lastValue
             },
-            "continous": {
+            "continuous": {
                 "type": "Property",
                 "value": self.rp.value()
             }

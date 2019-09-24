@@ -44,8 +44,8 @@ class DatasourceManager:
 
         server_url = host + ":" + str(port) + "/ngsi-ld/v1/subscriptions/"
         r = requests.post(server_url, json=subscription, headers=self.headers)
-        logger.info("Adding subscription: " + r.text)
-        if r.status_code == 500:
+        logger.info("Adding subscription: " + str(r.status_code) + " " + r.text)
+        if r.status_code != 201:
             logger.debug("error creating subscription: " + r.text)
             raise BrokerError(r.text)
         else:

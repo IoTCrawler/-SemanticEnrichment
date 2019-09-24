@@ -3,13 +3,9 @@ import logging
 import ast
 from qoi_system import QoiSystem
 from datasource_manager import DatasourceManager
+from configuration import Config
 
 logger = logging.getLogger('semanticenrichment')
-
-# TODO shift broker, callback, etc. options into a config file
-BROKER_HOST = "155.54.95.248"
-BROKER_PORT = 9090
-
 
 class SemanticEnrichment:
 
@@ -85,7 +81,7 @@ class SemanticEnrichment:
         headers = {}
         headers.update({'content-type': 'application/ld+json'})
         headers.update({'accept': 'application/ld+json'})
-        url = "http://" + BROKER_HOST + ":" + str(BROKER_PORT) + "/ngsi-ld/v1/entities/" + eid + "/attrs/"
+        url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + eid + "/attrs/"
         r = requests.post(url, json=ngsi_msg, headers=headers)
         if r.status_code != 204:
             logger.debug("Attribute exists, patch it")
@@ -96,7 +92,7 @@ class SemanticEnrichment:
         headers = {}
         headers.update({'content-type': 'application/ld+json'})
         headers.update({'accept': 'application/ld+json'})
-        url = "http://" + BROKER_HOST + ":" + str(BROKER_PORT) + "/ngsi-ld/v1/entities/"
+        url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/"
         r = requests.post(url, json=ngsi_msg, headers=headers)
         if r.status_code == 409:
             logger.debug("Entity exists, patch it")
@@ -110,6 +106,6 @@ class SemanticEnrichment:
         ngsi_msg_patch = dict(ngsi_msg)
         ngsi_msg_patch.pop('id')
         ngsi_msg_patch.pop('type', None)
-        url = "http://" + BROKER_HOST + ":" + str(BROKER_PORT) + "/ngsi-ld/v1/entities/" + ngsi_msg['id'] + "/attrs"
+        url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + ngsi_msg['id'] + "/attrs"
         r = requests.patch(url, json=ngsi_msg_patch, headers=headers)
         logger.debug("Entity patched: " + str(r.status_code))

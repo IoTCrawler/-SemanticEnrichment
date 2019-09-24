@@ -46,7 +46,7 @@ def showsubscriptions():
         data['notification']['endpoint']['uri'] = semanticEnrichment.callback_url
         formdata = json.dumps(data, indent=2)
 
-    return render_template('subscriptions.html', formdata=formdata, subscriptions=subscriptions.values())
+    return render_template('subscriptions.html', formdata=formdata, subscriptions=subscriptions.values(), host=Config.get('NGSI', 'host'), port=Config.get('NGSI', 'port'))
 
 
 @bp.route('/log', methods=['GET'])

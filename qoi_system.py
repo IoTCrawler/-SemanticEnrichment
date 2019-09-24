@@ -15,6 +15,7 @@ class QoiSystem:
         for field in metadata['fields']:
             self.add_metric(PlausibilityMetric(self, field))
             self.add_metric(ConcordanceMetric(self, field))
+            self.add_metric(CompletenessMetric(self, field))
 
         self.add_metric(CompletenessMetric(self))
         timeliness = TimelinessMetric(self)
@@ -49,7 +50,7 @@ class QoiSystem:
             "@context": [
                 "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld", {
                     "QoI": "http://example.org/qoi/QoI",
-                    "continous": "http://example.org/qoi/continous",
+                    "continuous": "http://example.org/qoi/continous",
                     "last": "http://example.org/qoi/last",
                     "for": "http://example.org/qoi/for"
                 }

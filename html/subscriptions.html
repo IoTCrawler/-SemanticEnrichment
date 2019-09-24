@@ -8,12 +8,12 @@
 <form method="POST" action="addsubscription">
     <label for="host">Host:</label>
     <input type="url" name="host" id="host"
-           placeholder="http://155.54.95.248"
+           placeholder={{host}}
            pattern="http://.*" size="30"
-           required value="http://155.54.95.248">
+           required value={{host}}>
     <br>
     <label for="port">Port:</label>
-    <input type="number" id="port" name="port" required min="0" placeholder="9090" value="9090">
+    <input type="number" id="port" name="port" required min="0" placeholder={{port}} value={{port}}>
     <br>
     <label for="subscription">Subscription:</label>
     <textarea id="subscription" name="subscription" required>{{ formdata }}</textarea>
