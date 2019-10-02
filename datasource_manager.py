@@ -35,6 +35,7 @@ class DatasourceManager:
         self.headers = {}
         self.headers.update({'content-type': 'application/ld+json'})
         self.headers.update({'accept': 'application/ld+json'})
+        self.headers.update({'X-AUTH-TOKEN': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNTY5MzE1OTM5LCJleHAiOjE1Njk0MDIzMzl9.vXrFjz83oJonz-gZOMl0KLut9qyB47BL6Swfuevh8gw'})
         self.matcher = MetadataMatcher()
         self.get_active_subscriptions()
 
@@ -42,7 +43,7 @@ class DatasourceManager:
         # subscribe to ngsi-ld endpoint
         sub = Subscription(subscription['id'], host, port, subscription)
 
-        server_url = host + ":" + str(port) + "/ngsi-ld/v1/subscriptions/"
+        server_url = "http://" + host + ":" + str(port) + "/ngsi-ld/v1/subscriptions/"
         r = requests.post(server_url, json=subscription, headers=self.headers)
         logger.info("Adding subscription: " + str(r.status_code) + " " + r.text)
         if r.status_code != 201:
@@ -55,7 +56,7 @@ class DatasourceManager:
     def del_subscription(self, subid):
         subscription = self.subscriptions.pop(subid)
 
-        server_url = subscription.host + ":" + str(subscription.port) + "/ngsi-ld/v1/subscriptions/"
+        server_url = "http://" + subscription.host + ":" + str(subscription.port) + "/ngsi-ld/v1/subscriptions/"
         server_url = server_url + subid
         r = requests.delete(server_url, headers=self.headers)
         logger.debug("deleting subscription " + subid + ": " + r.text)
@@ -86,10 +87,10 @@ class DatasourceManager:
     def get_active_subscriptions(self):
         for host in self.known_ngsi_hosts:
             # get old subscriptions for semantic enrichment (starting with 'SE_')
-            server_url = host['host'] + ":" + str(host['port']) + "/ngsi-ld/v1/subscriptions/"
+            server_url = "http://" + host['host'] + ":" + str(host['port']) + "/ngsi-ld/v1/subscriptions/"
             print(server_url)
-            r = requests.get(server_url, headers=self.headers)
             try:
+                r = requests.get(server_url, headers=self.headers)
                 if r.status_code != 500:
                     for data in r.json():
                         print(r.json())

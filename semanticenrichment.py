@@ -14,6 +14,12 @@ class SemanticEnrichment:
         self.datasource_manager = DatasourceManager()
         self.datasource_map = ""
         self.callback_url = "https://mobcom.ecs.hs-osnabrueck.de/semanticenrichment/callback"
+
+        self.headers = {}
+        self.headers.update({'content-type': 'application/ld+json'})
+        self.headers.update({'accept': 'application/ld+json'})
+        self.headers.update({'X-AUTH-TOKEN': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNTY5MzE1OTM5LCJleHAiOjE1Njk0MDIzMzl9.vXrFjz83oJonz-gZOMl0KLut9qyB47BL6Swfuevh8gw'})
+
         logger.info("Semantic Enrichment started")
 
     def notify_datasource(self, metadata):
@@ -78,34 +84,26 @@ class SemanticEnrichment:
 
     def add_ngsi_attribute(self, ngsi_msg, eid):
         logger.debug("Add ngsi attribute to entity " + eid + ":" + str(ngsi_msg))
-        headers = {}
-        headers.update({'content-type': 'application/ld+json'})
-        headers.update({'accept': 'application/ld+json'})
         url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + eid + "/attrs/"
-        r = requests.post(url, json=ngsi_msg, headers=headers)
+        r = requests.post(url, json=ngsi_msg, headers=self.headers)
         if r.status_code != 204:
             logger.debug("Attribute exists, patch it")
-            requests.patch(url, json=ngsi_msg, headers=headers)
+            requests.patch(url, json=ngsi_msg, headers=self.headers)
 
     def create_ngsi_entity(self, ngsi_msg):
         logger.debug("Save entity to ngsi broker: " + str(ngsi_msg))
-        headers = {}
-        headers.update({'content-type': 'application/ld+json'})
-        headers.update({'accept': 'application/ld+json'})
         url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/"
-        r = requests.post(url, json=ngsi_msg, headers=headers)
+        print(url)
+        r = requests.post(url, json=ngsi_msg, headers=self.headers)
         if r.status_code == 409:
             logger.debug("Entity exists, patch it")
             self.patch_ngsi_entity(ngsi_msg)
 
     def patch_ngsi_entity(self, ngsi_msg):
-        headers = {}
-        headers.update({'content-type': 'application/ld+json'})
-        headers.update({'accept': 'application/ld+json'})
         # for updating entity we have to delete id and type, first do copy if needed somewhere else
         ngsi_msg_patch = dict(ngsi_msg)
         ngsi_msg_patch.pop('id')
         ngsi_msg_patch.pop('type', None)
         url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + ngsi_msg['id'] + "/attrs"
-        r = requests.patch(url, json=ngsi_msg_patch, headers=headers)
+        r = requests.patch(url, json=ngsi_msg_patch, headers=self.headers)
         logger.debug("Entity patched: " + str(r.status_code))

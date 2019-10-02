@@ -7,9 +7,9 @@
 {% block body %}
 <form method="POST" action="addsubscription">
     <label for="host">Host:</label>
-    <input type="url" name="host" id="host"
+    <input name="host" id="host"
            placeholder={{host}}
-           pattern="http://.*" size="30"
+           size="30"
            required value={{host}}>
     <br>
     <label for="port">Port:</label>

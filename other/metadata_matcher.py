@@ -57,6 +57,7 @@ class MetadataMatcher(object):
     def __init__(self):
         self.connected_to_db = False
         self.background_thread = None
+        self.retries = 5
         self.initialise()
 
     def create_background_thread(self):
@@ -92,8 +93,9 @@ class MetadataMatcher(object):
             # TODO initialise with example data
             if bool(Config.get('mongodb', 'initialise')):
                 self.store(metadata_example)
-        else:
+        elif self.retries > 0:
             #database not connected yet, try again in 5s
+            self.retries -= 1
             timer = threading.Timer(5.0, self.initialise)
             timer.start()
 
