@@ -56,8 +56,13 @@ class QoiSystem:
                 }
             ]
         }
+        i = 0
         for m in self.metrics:
-            qoi_ngsi[m.name] = m.get_ngsi()
+            if m.name in qoi_ngsi.keys():
+                qoi_ngsi[m.name + str(i)] = m.get_ngsi()    # TODO this is a workaround as one metric can only be used once as a key, this should be change as soon as one stream contains only one sensor!
+                i += 1
+            else:
+                qoi_ngsi[m.name] = m.get_ngsi()
             qoi_ngsi['@context'][1][m.name] = "http://example.org/qoi/" + m.name
 
         return qoi_ngsi
