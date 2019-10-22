@@ -1,5 +1,6 @@
 import requests
 import logging
+import threading
 from configuration import Config
 from other.exceptions import BrokerError
 from other.metadata_matcher import MetadataMatcher
@@ -37,7 +38,8 @@ class DatasourceManager:
         self.headers.update({'accept': 'application/ld+json'})
         self.headers.update({'X-AUTH-TOKEN': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNTY5MzE1OTM5LCJleHAiOjE1Njk0MDIzMzl9.vXrFjz83oJonz-gZOMl0KLut9qyB47BL6Swfuevh8gw'})
         self.matcher = MetadataMatcher()
-        self.get_active_subscriptions()
+        t = threading.Thread(target=self.get_active_subscriptions)  #put into thread to not block server
+        t.start()
 
     def add_subscription(self, host, port, subscription):
         # subscribe to ngsi-ld endpoint

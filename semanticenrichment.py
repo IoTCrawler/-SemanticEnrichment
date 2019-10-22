@@ -1,6 +1,7 @@
 import requests
 import logging
 import ast
+import threading
 from qoi_system import QoiSystem
 from datasource_manager import DatasourceManager
 from configuration import Config
@@ -82,28 +83,50 @@ class SemanticEnrichment:
         except Exception as e:
             logger.debug("Error while adding metadata: " + str(e))
 
+
     def add_ngsi_attribute(self, ngsi_msg, eid):
-        logger.debug("Add ngsi attribute to entity " + eid + ":" + str(ngsi_msg))
-        url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + eid + "/attrs/"
-        r = requests.post(url, json=ngsi_msg, headers=self.headers)
-        if r.status_code != 204:
-            logger.debug("Attribute exists, patch it")
-            requests.patch(url, json=ngsi_msg, headers=self.headers)
+        t = threading.Thread(target=self._add_ngsi_attribute, args=(ngsi_msg, eid, ))
+        t.start()
+
+    def _add_ngsi_attribute(self, ngsi_msg, eid):
+        try:
+            logger.debug("Add ngsi attribute to entity " + eid + ":" + str(ngsi_msg))
+            url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + eid + "/attrs/"
+            r = requests.post(url, json=ngsi_msg, headers=self.headers)
+            if r.status_code != 204:
+                logger.debug("Attribute exists, patch it")
+                requests.patch(url, json=ngsi_msg, headers=self.headers)
+        except requests.exceptions.ConnectionError as e:
+            logger.error("Error while adding attribute to ngsi entity" + str(e))
 
     def create_ngsi_entity(self, ngsi_msg):
-        logger.debug("Save entity to ngsi broker: " + str(ngsi_msg))
-        url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/"
-        print(url)
-        r = requests.post(url, json=ngsi_msg, headers=self.headers)
-        if r.status_code == 409:
-            logger.debug("Entity exists, patch it")
-            self.patch_ngsi_entity(ngsi_msg)
+        t = threading.Thread(target=self._create_ngsi_entity, args=(ngsi_msg, ))
+        t.start()
 
-    def patch_ngsi_entity(self, ngsi_msg):
-        # for updating entity we have to delete id and type, first do copy if needed somewhere else
-        ngsi_msg_patch = dict(ngsi_msg)
-        ngsi_msg_patch.pop('id')
-        ngsi_msg_patch.pop('type', None)
-        url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + ngsi_msg['id'] + "/attrs"
-        r = requests.patch(url, json=ngsi_msg_patch, headers=self.headers)
-        logger.debug("Entity patched: " + str(r.status_code))
+    def _create_ngsi_entity(self, ngsi_msg):
+        try:
+            logger.debug("Save entity to ngsi broker: " + str(ngsi_msg))
+            url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/"
+            print(url)
+            r = requests.post(url, json=ngsi_msg, headers=self.headers)
+            if r.status_code == 409:
+                logger.debug("Entity exists, patch it")
+                self.patch_ngsi_entity(ngsi_msg)
+        except requests.exceptions.ConnectionError as e:
+            logger.error("Error while creating ngsi entity" + str(e))
+
+    def _patch_ngsi_entity(self, ngsi_msg):
+        t = threading.Thread(target=self._patch_ngsi_entity, args=(ngsi_msg, ))
+        t.start()
+
+    def _patch_ngsi_entity(self, ngsi_msg):
+        try:
+            # for updating entity we have to delete id and type, first do copy if needed somewhere else
+            ngsi_msg_patch = dict(ngsi_msg)
+            ngsi_msg_patch.pop('id')
+            ngsi_msg_patch.pop('type', None)
+            url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + ngsi_msg['id'] + "/attrs"
+            r = requests.patch(url, json=ngsi_msg_patch, headers=self.headers)
+            logger.debug("Entity patched: " + str(r.status_code))
+        except requests.exceptions.ConnectionError as e:
+            logger.error("Error while patching ngsi entity" + str(e))
