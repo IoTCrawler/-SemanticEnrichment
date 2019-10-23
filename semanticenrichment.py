@@ -29,7 +29,9 @@ class SemanticEnrichment:
 
         # TODO initialise a qoi system per value of a stream? per stream, metrics are split to stream or value
         # store metadata in qoi_system
-        self.qoisystem_map[metadata['id']] = QoiSystem(metadata)
+        #check if system exists
+        if metadata['id'] not in self.qoisystem_map:
+            self.qoisystem_map[metadata['id']] = QoiSystem(metadata)
 
     def receive(self, data):
         self.qoisystem_map[data['id']].update(data)

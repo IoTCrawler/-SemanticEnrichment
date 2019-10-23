@@ -11,12 +11,4 @@ class TimelinessMetric(AbstractMetric):
     def update_metric(self, data):
         pass
 
-    # def get_qoivalue(self):
-    #     qoi_values = {'metric': self.name, 'last': 'NA', 'continous': 'NA'}
-    #     if len(self.submetrics) > 0:
-    #         subvalues = []
-    #         for submetric in self.submetrics:
-    #             subvalues.append(submetric.get_qoivalue())
-    #         qoi_values['submetrics'] = subvalues
-    #
-    #     return qoi_values
+

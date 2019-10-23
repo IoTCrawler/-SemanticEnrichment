@@ -9,6 +9,7 @@ class TimelinessFrequencyMetric(AbstractMetric):
         self.qoisystem = qoisystem
         self.name = "frequency"
         self.lastUpdate = 'NA'
+        self.unit = "seconds"
 
     def update_metric(self, data):
         current = datetime.datetime.now()
@@ -17,12 +18,13 @@ class TimelinessFrequencyMetric(AbstractMetric):
         else:
             update_interval = self.qoisystem.metadata['updateinterval']['frequency']
             unit = self.qoisystem.metadata['updateinterval']['unit']
-            if unit is "seconds":
+            if unit in ("s", "seconds"):
                 diff = (current - self.lastUpdate).total_seconds()
+                self.lastUpdate = current
                 if diff > float(update_interval):
-                    self.rp.update(1)
-                else:
                     self.rp.update(0)
+                else:
+                    self.rp.update(1)
                 self.lastValue = diff
             else:
                 self.logger.debug("Unit not supported for frequency metric:" + update_interval)

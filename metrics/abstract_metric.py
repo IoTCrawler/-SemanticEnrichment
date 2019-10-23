@@ -11,6 +11,7 @@ class AbstractMetric(object):
         self.qoi_system = qoisystem
         self.rp = RewardAndPunishment(5)
         self.lastValue = 'NA'
+        self.unit = 'NA'
         self.submetrics = []
         if not field:
             self.field = 'sensor'
@@ -36,6 +37,9 @@ class AbstractMetric(object):
     def get_qoivalue(self):
         qoi_values = {'metric': self.name, 'for': self.field, 'last': self.lastValue,
                       'continuous': 'NA' if self.rp.value() is 'NA' else '{:.2f}'.format(self.rp.value())}
+        if self.unit is not 'NA':
+            qoi_values['unit'] = self.unit
+
         if len(self.submetrics) > 0:
             subvalues = []
             for submetric in self.submetrics:

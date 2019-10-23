@@ -68,7 +68,6 @@ class MetadataMatcher(object):
             self.start_background_thread()
 
     def start_background_thread(self):
-        print("start thread")
         self.background_thread = threading.Thread(target=self.connect)
         self.background_thread.start()
 
