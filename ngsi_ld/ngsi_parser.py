@@ -1,5 +1,6 @@
 import datetime
 import logging
+import json
 
 logger = logging.getLogger('semanticenrichment')
 
@@ -23,6 +24,19 @@ def parse_ngsi(ngsi_data):
         metadata['updateinterval'] = updateinterval
     except KeyError as e:
         logger.debug("no updateinterval found " + str(e))
+
+    try:
+        location = {}
+        if type(ngsi_data['location']['value']) is str:     #TODO workaround for ngb broker location as string
+            jsonString = json.loads(ngsi_data['location']['value'])
+            location['type'] = jsonString['type']
+            location['coordinates'] = jsonString['coordinates']
+        else:
+            location['type'] = ngsi_data['location']['value']['type']
+            location['coordinates'] = ngsi_data['location']['value']['coordinates']
+        metadata['location'] = location
+    except KeyError as e:
+        logger.debug("no location found " + str(e))
 
     return data, metadata
 

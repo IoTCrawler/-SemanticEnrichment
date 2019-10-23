@@ -117,7 +117,7 @@ class SemanticEnrichment:
         except requests.exceptions.ConnectionError as e:
             logger.error("Error while creating ngsi entity" + str(e))
 
-    def _patch_ngsi_entity(self, ngsi_msg):
+    def patch_ngsi_entity(self, ngsi_msg):
         t = threading.Thread(target=self._patch_ngsi_entity, args=(ngsi_msg, ))
         t.start()
 
