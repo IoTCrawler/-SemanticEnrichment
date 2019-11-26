@@ -3,15 +3,15 @@
   "type": "Subscription",
   "entities": [
     {
-      "type": "TemperatureSensor"
+      "type": "temperaturesensor"
     }
   ],
   "watchedAttributes": [
-    "Value"
+    "temperature"
   ],
   "notification": {
     "attributes": [
-      "Value"
+      "temperature"
     ],
     "format": "keyValues",
     "endpoint": {
@@ -22,9 +22,8 @@
   "@context": [
     "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",
     {
-      "TemperatureSensor": "http://example.org/pleyades/TemperatureSensor",
-      "Value": "http://example.org/pleyades/Value",
-      "Description": "http://example.org/pleyades/Description"
+      "temperaturesensor": "http://example.org/environment/bme680/temperaturesensor",
+      "temperature": "http://example.org/environment/bme680/temperature"
     }
   ]
 }

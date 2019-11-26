@@ -15,7 +15,7 @@ class RewardAndPunishment:
         self.started = False
 
     def update(self, truthhold):
-        #TODO bug: plausibility not returning NA?
+        # TODO bug: plausibility not returning NA?
         # detect if rp was already used
         self.started = True
 
@@ -40,8 +40,23 @@ class RewardAndPunishment:
         # return 'NA' if not used yet
         if not self.started:
             return 'NA'
-        if abs(self.reward) < 0:
+        if self.reward < 0:
             return 0
         elif abs(self.reward) > 1:
             return 1
         return abs(self.reward)  # * 2 - 1
+
+
+if __name__ == "__main__":
+    rp = RewardAndPunishment(7)
+    print(rp.value())
+    rp.update(0)
+    print(rp.value())
+
+    for i in range(0, 9):
+        rp.update(0)
+        print(rp.value())
+
+    for i in range(0, 9):
+        rp.update(1)
+        print(rp.value())

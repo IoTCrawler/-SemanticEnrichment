@@ -8,7 +8,6 @@ from other.exceptions import BrokerError
 from other.logging import DequeLoggerHandler
 from configuration import Config
 
-
 # Configure logging
 logger = logging.getLogger('semanticenrichment')
 logger.setLevel(logging.DEBUG)
@@ -19,7 +18,7 @@ file_handler = logging.FileHandler('semanticenrichment.log')
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(formatter)
 
-deque_handler = DequeLoggerHandler(int(Config.get('semanticenrichment', 'maxlogentries')))
+deque_handler = DequeLoggerHandler(int(Config.get('logging', 'maxlogentries')))
 deque_handler.setLevel(logging.DEBUG)
 deque_handler.setFormatter(formatter)
 
@@ -40,18 +39,38 @@ def index():
 @bp.route('/showsubscriptions', methods=['GET', 'POST'])
 def showsubscriptions():
     subscriptions = semanticEnrichment.get_subscriptions()
-    with open('jsonfiles/UMU_Subscription_TemperatureSensor.json') as jFile:
+    with open('jsonfiles/UASO_Subscription_TemperatureSensor.json') as jFile:
         data = json.load(jFile)
         data['id'] = data['id'] + str(uuid.uuid4())
-        data['notification']['endpoint']['uri'] = semanticEnrichment.callback_url
+        data['notification']['endpoint']['uri'] = Config.get('semanticenrichment', 'callback')
         formdata = json.dumps(data, indent=2)
 
-    return render_template('subscriptions.html', formdata=formdata, subscriptions=subscriptions.values(), host=Config.get('NGSI', 'host'), port=Config.get('NGSI', 'port'))
+    return render_template('subscriptions.html', formdata=formdata, subscriptions=subscriptions.values(),
+                           host=Config.get('NGSI', 'host'), port=Config.get('NGSI', 'port'))
 
 
 @bp.route('/log', methods=['GET'])
 def showlog():
-    return render_template('log.html', logmessages=deque_handler.get_entries(), maxentries=deque_handler.maxentries)
+    return render_template('log.html', logmessages=deque_handler.get_entries(),
+                           maxentries=int(Config.get('logging', 'maxlogentries')))
+
+
+@bp.route('/configuration', methods=['GET'])
+def showconfiguration():
+    print(Config.getAllOptions())
+    return render_template('configuration.html', configuration=Config.getAllOptions())
+
+
+@bp.route('/changeconfiguration', methods=['POST'])
+def changeconfiguration():
+    section = request.form.get('section')
+    key = request.form.get('key')
+    value = request.form.get('value')
+    Config.update(section, key, value)
+    # check if logging changed
+    if section == "logging":
+        deque_handler.setnrentries(int(Config.get('logging', 'maxlogentries')))
+    return redirect(url_for('.showconfiguration'))
 
 
 @bp.route('/addsubscription', methods=['POST'])
@@ -66,6 +85,13 @@ def addsubscription():
             flash('Error while adding subscription:' + str(e))
     else:
         logger.debug("missing data for adding subscription")
+    return redirect(url_for('.showsubscriptions'))
+
+
+@bp.route('/getsubscriptions', methods=['POST'])
+def getsubscriptions():
+    semanticEnrichment.datasource_manager.get_active_subscriptions()
+    logger.info("missing data for adding subscription")
     return redirect(url_for('.showsubscriptions'))
 
 
@@ -136,7 +162,8 @@ app.secret_key = 'e3645c25b6d5bf67ae6da68c824e43b530e0cb43b0b9432b'
 app.register_blueprint(bp, url_prefix='/semanticenrichment')
 
 if __name__ == "__main__":
-    app.run(host=Config.get('semanticenrichment', 'host'), port=int(Config.get('semanticenrichment', 'port')), debug=False)
+    app.run(host=Config.get('semanticenrichment', 'host'), port=int(Config.get('semanticenrichment', 'port')),
+            debug=False)
 
 # TODO
 # which metric for whole stream, which for every single value?

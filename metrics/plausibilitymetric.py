@@ -34,7 +34,8 @@ class PlausibilityMetric(AbstractMetric):
         else:
             self.lastValue = 'NA'
 
-    def is_number(self, s):
+    @staticmethod
+    def is_number(s):
         try:
             float(s)
             return True

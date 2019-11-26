@@ -4,14 +4,12 @@ import json
 
 logger = logging.getLogger('semanticenrichment')
 
+
 def parse_ngsi(ngsi_data):
     print(ngsi_data)
     # parse ngsi-ld data to data and metadata
-    data = {}
-    data['id'] = ngsi_data['id']
+    data = {'id': ngsi_data['id'], 'timestamp': get_ngsi_observedAt(ngsi_data), 'values': get_ngsi_values(ngsi_data)}
     # get one observedAt as timestamp
-    data['timestamp'] = get_ngsi_observedAt(ngsi_data)
-    data['values'] = get_ngsi_values(ngsi_data)
 
     metadata = {}
     metadata['id'] = ngsi_data['id']
@@ -19,7 +17,7 @@ def parse_ngsi(ngsi_data):
     metadata['fields'] = get_ngsi_fields(ngsi_data)
     try:
         updateinterval = {}
-        updateinterval['frequency'] = ngsi_data['updateinterval']['frequency']['value']
+        updateinterval['frequency'] = ngsi_data['updateinterval']['value']
         updateinterval['unit'] = ngsi_data['updateinterval']['unit']['value']
         metadata['updateinterval'] = updateinterval
     except KeyError as e:
@@ -27,7 +25,7 @@ def parse_ngsi(ngsi_data):
 
     try:
         location = {}
-        if type(ngsi_data['location']['value']) is str:     #TODO workaround for ngb broker location as string
+        if type(ngsi_data['location']['value']) is str:  # TODO workaround for ngb broker location as string
             jsonString = json.loads(ngsi_data['location']['value'])
             location['type'] = jsonString['type']
             location['coordinates'] = jsonString['coordinates']
@@ -65,7 +63,7 @@ def get_ngsi_values(json_object):
 def get_ngsi_fields(json_object):
     fields = {}
     for key in json_object:
-        #TODO no "nice" solution but need to filter "updateinterval"
+        # TODO no "nice" solution but need to filter "updateinterval"
         if key != "updateinterval":
             obj = json_object[key]
             if 'type' in obj:

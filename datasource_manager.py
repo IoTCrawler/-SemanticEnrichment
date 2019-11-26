@@ -1,6 +1,8 @@
-import requests
 import logging
 import threading
+
+import requests
+
 from configuration import Config
 from other.exceptions import BrokerError
 from other.metadata_matcher import MetadataMatcher
@@ -36,7 +38,7 @@ class DatasourceManager:
         self.headers = {}
         self.headers.update({'content-type': 'application/ld+json'})
         self.headers.update({'accept': 'application/ld+json'})
-        self.headers.update({'X-AUTH-TOKEN': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNTY5MzE1OTM5LCJleHAiOjE1Njk0MDIzMzl9.vXrFjz83oJonz-gZOMl0KLut9qyB47BL6Swfuevh8gw'})
+        self.headers.update({'X-AUTH-TOKEN': Config.get('NGSI', 'token')})
         self.matcher = MetadataMatcher()
         t = threading.Thread(target=self.get_active_subscriptions)  #put into thread to not block server
         t.start()
@@ -90,16 +92,23 @@ class DatasourceManager:
         for host in self.known_ngsi_hosts:
             # get old subscriptions for semantic enrichment (starting with 'SE_')
             server_url = "http://" + host['host'] + ":" + str(host['port']) + "/ngsi-ld/v1/subscriptions/"
-            print(server_url)
             try:
                 r = requests.get(server_url, headers=self.headers)
-                if r.status_code != 500:
-                    for data in r.json():
-                        print(r.json())
-                        if data['id'].startswith('SE_', data['id'].rfind(':') + 1):
-                            sub = Subscription(data['id'], host['host'], host['port'], data)
-                            self.subscriptions[sub.id] = sub
+                if r.status_code == 200:
+                    if isinstance(r.json(), list):
+                        for data in r.json():
+                            self.handlejsonsubscription(data, host)
+                    if isinstance(r.json(), dict):
+                        self.handlejsonsubscription(r.json(), host)
                 else:
-                    logger.error("Error getting active subscriptions: " + r.text)
+                    logger.error("Error getting active subscriptions: " + r.text + r.status_code)
             except Exception as e:
                 logger.error("Error getting active subscriptions: " + str(e))
+
+    def handlejsonsubscription(self, data, host):
+        if data['id'].startswith('SE_', data['id'].rfind(':') + 1):
+            sub = Subscription(data['id'], host['host'], host['port'], data)
+            self.subscriptions[sub.id] = sub
+            logger.info("Found active subscription: " + str(data))
+        else:
+            logger.info("not our subscription")

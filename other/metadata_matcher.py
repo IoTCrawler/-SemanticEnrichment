@@ -73,7 +73,8 @@ class MetadataMatcher(object):
 
     def connect(self):
         try:
-            self.client = pymongo.MongoClient(Config.get('mongodb', 'host'), int(Config.get('mongodb', 'port')), serverSelectionTimeoutMS=0.5)
+            self.client = pymongo.MongoClient(Config.get('mongodb', 'host'), int(Config.get('mongodb', 'port')),
+                                              serverSelectionTimeoutMS=0.5)
             self.db = self.client['se_db']
             self.metadata = self.db.metadata
             self.metadata.create_index([('type', pymongo.TEXT)])
@@ -93,7 +94,7 @@ class MetadataMatcher(object):
             if bool(Config.get('mongodb', 'initialise')):
                 self.store(metadata_example)
         elif self.retries > 0:
-            #database not connected yet, try again in 5s
+            # database not connected yet, try again in 5s
             self.retries -= 1
             timer = threading.Timer(5.0, self.initialise)
             timer.start()

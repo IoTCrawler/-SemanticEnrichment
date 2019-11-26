@@ -8,18 +8,18 @@ from configuration import Config
 
 logger = logging.getLogger('semanticenrichment')
 
+
 class SemanticEnrichment:
 
     def __init__(self):
         self.qoisystem_map = {}
         self.datasource_manager = DatasourceManager()
         self.datasource_map = ""
-        self.callback_url = "https://mobcom.ecs.hs-osnabrueck.de/semanticenrichment/callback"
 
         self.headers = {}
         self.headers.update({'content-type': 'application/ld+json'})
         self.headers.update({'accept': 'application/ld+json'})
-        self.headers.update({'X-AUTH-TOKEN': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNTY5MzE1OTM5LCJleHAiOjE1Njk0MDIzMzl9.vXrFjz83oJonz-gZOMl0KLut9qyB47BL6Swfuevh8gw'})
+        self.headers.update({'X-AUTH-TOKEN': Config.get('NGSI', 'token')})
 
         logger.info("Semantic Enrichment started")
 
@@ -29,7 +29,7 @@ class SemanticEnrichment:
 
         # TODO initialise a qoi system per value of a stream? per stream, metrics are split to stream or value
         # store metadata in qoi_system
-        #check if system exists
+        # check if system exists
         if metadata['id'] not in self.qoisystem_map:
             self.qoisystem_map[metadata['id']] = QoiSystem(metadata)
 
@@ -85,15 +85,15 @@ class SemanticEnrichment:
         except Exception as e:
             logger.debug("Error while adding metadata: " + str(e))
 
-
     def add_ngsi_attribute(self, ngsi_msg, eid):
-        t = threading.Thread(target=self._add_ngsi_attribute, args=(ngsi_msg, eid, ))
+        t = threading.Thread(target=self._add_ngsi_attribute, args=(ngsi_msg, eid,))
         t.start()
 
     def _add_ngsi_attribute(self, ngsi_msg, eid):
         try:
             logger.debug("Add ngsi attribute to entity " + eid + ":" + str(ngsi_msg))
-            url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + eid + "/attrs/"
+            url = "http://" + Config.get('NGSI', 'host') + ":" + str(
+                Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + eid + "/attrs/"
             r = requests.post(url, json=ngsi_msg, headers=self.headers)
             if r.status_code != 204:
                 logger.debug("Attribute exists, patch it")
@@ -102,13 +102,14 @@ class SemanticEnrichment:
             logger.error("Error while adding attribute to ngsi entity" + str(e))
 
     def create_ngsi_entity(self, ngsi_msg):
-        t = threading.Thread(target=self._create_ngsi_entity, args=(ngsi_msg, ))
+        t = threading.Thread(target=self._create_ngsi_entity, args=(ngsi_msg,))
         t.start()
 
     def _create_ngsi_entity(self, ngsi_msg):
         try:
             logger.debug("Save entity to ngsi broker: " + str(ngsi_msg))
-            url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/"
+            url = "http://" + Config.get('NGSI', 'host') + ":" + str(
+                Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/"
             print(url)
             r = requests.post(url, json=ngsi_msg, headers=self.headers)
             if r.status_code == 409:
@@ -118,7 +119,7 @@ class SemanticEnrichment:
             logger.error("Error while creating ngsi entity" + str(e))
 
     def patch_ngsi_entity(self, ngsi_msg):
-        t = threading.Thread(target=self._patch_ngsi_entity, args=(ngsi_msg, ))
+        t = threading.Thread(target=self._patch_ngsi_entity, args=(ngsi_msg,))
         t.start()
 
     def _patch_ngsi_entity(self, ngsi_msg):
@@ -127,7 +128,8 @@ class SemanticEnrichment:
             ngsi_msg_patch = dict(ngsi_msg)
             ngsi_msg_patch.pop('id')
             ngsi_msg_patch.pop('type', None)
-            url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + ngsi_msg['id'] + "/attrs"
+            url = "http://" + Config.get('NGSI', 'host') + ":" + str(
+                Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + ngsi_msg['id'] + "/attrs"
             r = requests.patch(url, json=ngsi_msg_patch, headers=self.headers)
             logger.debug("Entity patched: " + str(r.status_code))
         except requests.exceptions.ConnectionError as e:
