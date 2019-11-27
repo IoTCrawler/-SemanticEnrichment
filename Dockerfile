@@ -1,6 +1,6 @@
 FROM python:3
 
-RUN pip3 install requests flask pymongo fuzzywuzzy python-levenshtein dateutil
+RUN pip3 install requests flask pymongo fuzzywuzzy python-levenshtein python-dateutil
 
 COPY static /static/
 COPY html /html
