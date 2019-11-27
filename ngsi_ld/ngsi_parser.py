@@ -1,4 +1,4 @@
-import datetime
+import dateutil.parser
 import logging
 import json
 
@@ -46,7 +46,7 @@ def get_ngsi_observedAt(json_object):
             if obj['type'] == 'Property':
                 if 'observedAt' in obj:
                     str_date = obj['observedAt']
-                    return datetime.datetime.strptime(str_date, "%Y-%m-%dT%H:%M:%S").timestamp()
+                    return dateutil.parser.parse(str_date).timestamp()
 
 
 def get_ngsi_values(json_object):
