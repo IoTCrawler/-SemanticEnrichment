@@ -4,9 +4,23 @@ import json
 
 logger = logging.getLogger('semanticenrichment')
 
+def fixurlkeys(data):
+    tmpobj = {}
+    for k, value in data.items():
+        if isinstance(value, dict):
+            value = fixurlkeys(value)
+        elif isinstance(value, str):
+            value = value.split('/')[-1]
+        tmpobj[k.split('/')[-1]] = value
+    return tmpobj
 
 def parse_ngsi(ngsi_data):
     print(ngsi_data)
+
+    #TODO stupid fix, to be removed later when metadata has its fixed context
+    ngsi_data = fixurlkeys(ngsi_data)
+    # print("new", ngsi_data)
+
     # parse ngsi-ld data to data and metadata
     data = {'id': ngsi_data['id'], 'timestamp': get_ngsi_observedAt(ngsi_data), 'values': get_ngsi_values(ngsi_data)}
     # get one observedAt as timestamp
@@ -64,7 +78,7 @@ def get_ngsi_fields(json_object):
     fields = {}
     for key in json_object:
         # TODO no "nice" solution but need to filter "updateinterval"
-        if key != "updateinterval":
+        if 'updateinterval' not in key:
             obj = json_object[key]
             if 'type' in obj:
                 if obj['type'] == 'Property':

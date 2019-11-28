@@ -110,7 +110,7 @@ class SemanticEnrichment:
             logger.debug("Save entity to ngsi broker: " + str(ngsi_msg))
             url = "http://" + Config.get('NGSI', 'host') + ":" + str(
                 Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/"
-            print(url)
+            # print(url)
             r = requests.post(url, json=ngsi_msg, headers=self.headers)
             if r.status_code == 409:
                 logger.debug("Entity exists, patch it")
