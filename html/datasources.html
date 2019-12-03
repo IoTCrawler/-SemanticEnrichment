@@ -12,11 +12,12 @@
     <tr>
         <th>ID</th>
         <th>Type</th>
+        <th>Last Update</th>
         <th>Metadata</th>
         <th>QoI</th>
     </tr>
     {% for ds in datasources %}
-    <tr><td>{{ ds.id}}</td><td>{{ ds.dstype }}</td><td>{{ ds.metadata }}</td><td>{{ ds.qoi}}</td></tr>
+    <tr><td>{{ ds.id}}</td><td>{{ ds.dstype }}</td><td>{{ ds.lastupdate|datetime }}</td><td>{{ ds.metadata }}</td><td>{{ ds.qoi}}</td></tr>
     {% endfor %}
 </table>
 {% endif %}

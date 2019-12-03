@@ -29,6 +29,8 @@ logger.info("logger ready")
 bp = Blueprint('semanticenrichment', __name__, static_url_path='', static_folder='static', template_folder='html')
 semanticEnrichment = SemanticEnrichment()
 
+def formate_datetime(value):
+    return value.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 @bp.route('/')
 @bp.route('/index')
@@ -160,6 +162,7 @@ def callback():
 app = Flask(__name__)
 app.secret_key = 'e3645c25b6d5bf67ae6da68c824e43b530e0cb43b0b9432b'
 app.register_blueprint(bp, url_prefix='/semanticenrichment')
+app.jinja_env.filters['datetime'] = formate_datetime
 
 if __name__ == "__main__":
     app.run(host=Config.get('semanticenrichment', 'host'), port=int(Config.get('semanticenrichment', 'port')),

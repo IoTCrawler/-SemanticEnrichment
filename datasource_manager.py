@@ -2,6 +2,7 @@ import logging
 import threading
 
 import requests
+import datetime
 
 from configuration import Config
 from other.exceptions import BrokerError
@@ -23,9 +24,11 @@ class DataSource:
         self.id = dsid
         self.dstype = dstype
         self.metadata = metadata
+        self.lastupdate = datetime.datetime.now()
 
     def update(self, metadata):
         self.metadata.update(metadata)
+        self.lastupdate = datetime.datetime.now()
 
 
 class DatasourceManager:
