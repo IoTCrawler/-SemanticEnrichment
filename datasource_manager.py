@@ -65,6 +65,12 @@ class DatasourceManager:
             if stream_id == ngsi_parser.get_observation_stream(observation):
                 return observation
 
+    def link_qoi(self, stream_id, qoi_id):
+        try:
+            self.streams[stream_id]['hasQuality']['object'] = qoi_id
+        except KeyError:
+            pass
+
     def add_subscription(self, host, port, subscription):
         # subscribe to ngsi-ld endpoint
         sub = Subscription(subscription['id'], host, port, subscription)

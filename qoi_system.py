@@ -2,7 +2,7 @@ from metrics.completenessmetric import CompletenessMetric
 from metrics.plausibilitymetric import PlausibilityMetric
 from metrics.timelinessagemmetric import TimelinessAgeMetric
 from metrics.timelinessfrequencymetric import TimelinessFrequencyMetric
-from metrics.timelinessmetric import TimelinessMetric
+from metrics.artificiality import ArtificialityMetric
 from metrics.concordancemetric import ConcordanceMetric
 
 
@@ -16,19 +16,20 @@ class QoiSystem:
         self.add_metric(PlausibilityMetric(self))
         self.add_metric(ConcordanceMetric(self))
         self.add_metric(CompletenessMetric(self))
-        timeliness = TimelinessMetric(self)
-        timeliness.add_submetric(TimelinessAgeMetric(self))
-        timeliness.add_submetric(TimelinessFrequencyMetric(self))
-        self.add_metric(timeliness)
+        #we don't add submetrics anymore
+        # timeliness = TimelinessMetric(self)
+        # timeliness.add_submetric(TimelinessAgeMetric(self))
+        # timeliness.add_submetric(TimelinessFrequencyMetric(self))
+        # self.add_metric(timeliness)
+        self.add_metric(TimelinessAgeMetric(self))
+        self.add_metric(TimelinessFrequencyMetric(self))
+        self.add_metric(ArtificialityMetric(self))
 
     def add_metrics(self, metrics):
         pass
 
     def add_metric(self, metric):
         self.metrics.append(metric)
-
-    # def change_metadata(self, metadata):
-    #     self.metadata = metadata
 
     def get_stream(self, stream_id):
         return self.ds_manager.get_stream(stream_id)
@@ -63,6 +64,6 @@ class QoiSystem:
                 i += 1
             else:
                 qoi_ngsi[m.name] = m.get_ngsi()
-            qoi_ngsi['@context'][1][m.name] = "w3id.org/iot/qoi#" + m.name
+            qoi_ngsi['@context'][1][m.name] = "https://w3id.org/iot/qoi#" + m.name
 
         return qoi_ngsi

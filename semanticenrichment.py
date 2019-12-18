@@ -62,6 +62,9 @@ class SemanticEnrichment:
                 }
             ]
         }
+        #update locally
+        self.datasource_manager.link_qoi(stream_id, qoi_ngsi['id'])
+
         # TODO save QoI to MDR
         # save qoi data
         self.create_ngsi_entity(qoi_ngsi)
