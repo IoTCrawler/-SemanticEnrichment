@@ -34,8 +34,8 @@ class AbstractMetric(object):
         qoi_values = {'metric': self.name,
                       # 'for': self.field,
                       'last': self.lastValue,
-                      'continuous': 'NA' if self.rp.value() is 'NA' else '{:.2f}'.format(self.rp.value())}
-        if self.unit is not 'NA':
+                      'continuous': 'NA' if self.rp.value() == 'NA' else '{:.2f}'.format(self.rp.value())}
+        if self.unit != 'NA':
             qoi_values['unit'] = self.unit
 
         if len(self.submetrics) > 0:

@@ -21,7 +21,7 @@ class PlausibilityMetric(AbstractMetric):
                 # get type
                 if 'valuetype' in stream:
                     datatype = stream['valuetype']['value']
-                    if datatype is not 'NA':
+                    if datatype != 'NA':
                         if datatype in ['int', 'integer', 'double', 'float']:
                             self.handle_number(value, stream)
                     elif self.is_number(value):
@@ -33,7 +33,7 @@ class PlausibilityMetric(AbstractMetric):
         # TODO add error handling if min/max are not in stream
         min = stream['min']['value']
         max = stream['max']['value']
-        if (min is not 'NA') & (max is not 'NA'):
+        if (min != 'NA') & (max != 'NA'):
             if min <= value <= max:
                 self.lastValue = 1
                 self.rp.update(1)

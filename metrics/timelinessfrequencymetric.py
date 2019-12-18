@@ -14,7 +14,7 @@ class TimelinessFrequencyMetric(AbstractMetric):
 
     def update_metric(self, observation):
         current = datetime.datetime.now()
-        if self.lastUpdate is 'NA':
+        if self.lastUpdate == 'NA':
             self.lastUpdate = current
         else:
             stream_id = ngsi_parser.get_observation_stream(observation)
