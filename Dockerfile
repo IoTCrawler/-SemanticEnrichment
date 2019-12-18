@@ -4,7 +4,6 @@ RUN pip3 install requests flask pymongo fuzzywuzzy python-levenshtein python-dat
 
 COPY static /static/
 COPY html /html
-COPY jsonfiles /jsonfiles
 COPY metrics /metrics
 COPY ngsi_ld /ngsi_ld
 COPY other /other
