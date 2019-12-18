@@ -3,16 +3,11 @@
   "type": "Subscription",
   "entities": [
     {
-      "type": "temperaturesensor"
+      "type": "StreamObservation"
     }
   ],
-  "watchedAttributes": [
-    "temperature"
-  ],
   "notification": {
-    "attributes": [
-      "temperature"
-    ],
+    "attributes": [],
     "format": "keyValues",
     "endpoint": {
       "uri": "{{notif-endpoint}}",
@@ -22,8 +17,7 @@
   "@context": [
     "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",
     {
-      "temperaturesensor": "http://example.org/environment/bme680/temperaturesensor",
-      "temperature": "http://example.org/environment/bme680/temperature"
+      "StreamObservation": "http://purl.org/iot/ontology/iot-stream#StreamObservation"
     }
   ]
 }

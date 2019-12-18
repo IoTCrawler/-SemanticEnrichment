@@ -3,16 +3,11 @@
   "type": "Subscription",
   "entities": [
     {
-      "type": "TemperatureSensor"
+      "type": "iotstream"
     }
   ],
-  "watchedAttributes": [
-    "Value"
-  ],
   "notification": {
-    "attributes": [
-      "Value"
-    ],
+    "attributes": [],
     "format": "keyValues",
     "endpoint": {
       "uri": "{{notif-endpoint}}",
@@ -22,9 +17,7 @@
   "@context": [
     "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",
     {
-      "TemperatureSensor": "http://example.org/pleyades/TemperatureSensor",
-      "Value": "http://example.org/pleyades/Value",
-      "Description": "http://example.org/pleyades/Description"
+      "iotstream": "http://purl.org/iot/ontology/iot-stream#IotStream"
     }
   ]
 }

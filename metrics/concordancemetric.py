@@ -3,8 +3,8 @@ from metrics.abstract_metric import AbstractMetric
 
 class ConcordanceMetric(AbstractMetric):
 
-    def __init__(self, qoisystem, field=None):
-        super(ConcordanceMetric, self).__init__(qoisystem, field)
+    def __init__(self, qoisystem):
+        super(ConcordanceMetric, self).__init__(qoisystem)
         self.qoisystem = qoisystem
         self.name = "concordance"
 

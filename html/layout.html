@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="{{ url_for('.static', filename='css/template.css') }}">
     <script src="{{ url_for('.static', filename='js/template.js') }}"></script>
 
+    {% block head %}{% endblock %}
+
+
     <title>IoTCrawler - Semantic Enrichment</title>
 </head>
 

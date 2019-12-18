@@ -30,7 +30,7 @@ class Config:
 
     @classmethod
     def update(cls, section, key, value):
-        if not section in cls.parser.sections():
+        if section not in cls.parser.sections():
             cls.parser.add_section(section)
         cls.parser.set(section, key, value)
         with open(cls.configFilePath, 'w') as configfile:

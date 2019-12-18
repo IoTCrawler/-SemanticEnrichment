@@ -8,15 +8,13 @@ from metrics.concordancemetric import ConcordanceMetric
 
 class QoiSystem:
 
-    def __init__(self, metadata):
-        self.metadata = metadata
+    def __init__(self, streamid, ds_manager):
+        print("init qoi system with", streamid)
+        self.streamid = streamid
+        self.ds_manager = ds_manager
         self.metrics = []
-        # check values in metadata
-        for field in metadata['fields']:
-            self.add_metric(PlausibilityMetric(self, field))
-            self.add_metric(ConcordanceMetric(self, field))
-            self.add_metric(CompletenessMetric(self, field))
-
+        self.add_metric(PlausibilityMetric(self))
+        self.add_metric(ConcordanceMetric(self))
         self.add_metric(CompletenessMetric(self))
         timeliness = TimelinessMetric(self)
         timeliness.add_submetric(TimelinessAgeMetric(self))
@@ -29,8 +27,11 @@ class QoiSystem:
     def add_metric(self, metric):
         self.metrics.append(metric)
 
-    def change_metadata(self, metadata):
-        self.metadata = metadata
+    # def change_metadata(self, metadata):
+    #     self.metadata = metadata
+
+    def get_stream(self, stream_id):
+        return self.ds_manager.get_stream(stream_id)
 
     def update(self, data):
         for m in self.metrics:
@@ -45,14 +46,13 @@ class QoiSystem:
 
     def get_qoivector_ngsi(self):
         qoi_ngsi = {
-            "id": "urn:ngsi-ld:QoI:" + self.metadata['id'],
-            "type": "QoI",
+            "id": "urn:ngsi-ld:QoI:" + self.streamid,
+            "type": "Quality",
             "@context": [
                 "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld", {
-                    "QoI": "http://example.org/qoi/QoI",
-                    "continuous": "http://example.org/qoi/continous",
-                    "last": "http://example.org/qoi/last",
-                    "for": "http://example.org/qoi/for"
+                    "Quality": "https://w3id.org/iot/qoi#Quality",
+                    "hasRatedValue": "https://w3id.org/iot/qoi#hasRatedValue",
+                    "hasAbsoluteValue": "https://w3id.org/iot/qoi#hasAbsoluteValue"
                 }
             ]
         }
@@ -63,6 +63,6 @@ class QoiSystem:
                 i += 1
             else:
                 qoi_ngsi[m.name] = m.get_ngsi()
-            qoi_ngsi['@context'][1][m.name] = "http://example.org/qoi/" + m.name
+            qoi_ngsi['@context'][1][m.name] = "w3id.org/iot/qoi#" + m.name
 
         return qoi_ngsi

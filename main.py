@@ -2,6 +2,8 @@ import json
 import uuid
 import logging
 import ngsi_ld.ngsi_parser
+import datetime
+from ngsi_ld.ngsi_parser import NGSI_Type
 from flask import Flask, redirect, render_template, url_for, request, Blueprint, flash
 from semanticenrichment import SemanticEnrichment
 from other.exceptions import BrokerError
@@ -29,8 +31,14 @@ logger.info("logger ready")
 bp = Blueprint('semanticenrichment', __name__, static_url_path='', static_folder='static', template_folder='html')
 semanticEnrichment = SemanticEnrichment()
 
+
 def formate_datetime(value):
-    return value.strftime('%Y-%m-%dT%H:%M:%SZ')
+    if isinstance(value, float):
+        value = datetime.datetime.fromtimestamp(value)
+    if value:
+        return value.strftime('%Y-%m-%dT%H:%M:%SZ')
+    return None
+
 
 @bp.route('/')
 @bp.route('/index')
@@ -41,14 +49,8 @@ def index():
 @bp.route('/showsubscriptions', methods=['GET', 'POST'])
 def showsubscriptions():
     subscriptions = semanticEnrichment.get_subscriptions()
-    with open('jsonfiles/UASO_Subscription_TemperatureSensor.json') as jFile:
-        data = json.load(jFile)
-        data['id'] = data['id'] + str(uuid.uuid4())
-        data['notification']['endpoint']['uri'] = Config.get('semanticenrichment', 'callback')
-        formdata = json.dumps(data, indent=2)
-
-    return render_template('subscriptions.html', formdata=formdata, subscriptions=subscriptions.values(),
-                           host=Config.get('NGSI', 'host'), port=Config.get('NGSI', 'port'))
+    return render_template('subscriptions.html', subscriptions=subscriptions.values(), id=str(uuid.uuid4()),
+                           endpoint=Config.get('semanticenrichment', 'callback'))
 
 
 @bp.route('/log', methods=['GET'])
@@ -59,7 +61,6 @@ def showlog():
 
 @bp.route('/configuration', methods=['GET'])
 def showconfiguration():
-    print(Config.getAllOptions())
     return render_template('configuration.html', configuration=Config.getAllOptions())
 
 
@@ -77,16 +78,12 @@ def changeconfiguration():
 
 @bp.route('/addsubscription', methods=['POST'])
 def addsubscription():
-    host = request.form.get('host')
-    port = request.form.get('port')
     subscription = request.form.get('subscription')
-    if None not in (host, port, subscription):
-        try:
-            semanticEnrichment.add_subscription(host, port, json.loads(subscription))
-        except BrokerError as e:
-            flash('Error while adding subscription:' + str(e))
-    else:
-        logger.debug("missing data for adding subscription")
+    try:
+        semanticEnrichment.add_subscription(Config.get('NGSI', 'host'), Config.get('NGSI', 'port'),
+                                            json.loads(subscription))
+    except BrokerError as e:
+        flash('Error while adding subscription:' + str(e))
     return redirect(url_for('.showsubscriptions'))
 
 
@@ -108,11 +105,20 @@ def deletesubscription():
 
 @bp.route('/showdatasources', methods=['GET'])
 def showdatasources():
-    datasouces = []
-    for ds in semanticEnrichment.get_datasources().values():
-        ds.qoi = semanticEnrichment.get_qoivector(ds.id)
-        datasouces.append(ds)
-    return render_template('datasources.html', datasources=datasouces)
+    datasources = []
+    for stream_id, stream in semanticEnrichment.get_streams().items():
+        class datasource:   #local class to be returned to html page
+            pass
+
+        datasource.stream_id = stream_id
+        datasource.type = ngsi_ld.ngsi_parser.get_stream_observes(stream)
+        # get last StreamObservation for the stream
+        observation = semanticEnrichment.get_observation_for_stream(stream_id)
+        datasource.observedat = ngsi_ld.ngsi_parser.get_observation_timestamp(observation)
+        datasource.stream = json.dumps(stream, indent=2)
+        datasource.qoi = json.dumps(semanticEnrichment.get_qoivector_ngsi(stream_id), indent=2)
+        datasources.append(datasource)
+    return render_template('datasources.html', datasources=datasources)
 
 
 @bp.route('/showmetadata', methods=['GET'])
@@ -148,13 +154,24 @@ def deletemetadata():
 @bp.route('/callback', methods=['POST'])
 def callback():
     logger.debug("callback called" + str(request.get_json()))
+    print(request.get_json())
+
+    ngsi_id, ngsi_type = ngsi_ld.ngsi_parser.get_IDandType(request.get_json())
+
+    # notify about new iotstream, sensor, streamobservation, initialise qoi system if new stream
+    semanticEnrichment.notify_datasource(request.get_json())
+
+    # inform about new data
+    if ngsi_type is NGSI_Type.StreamObservation:
+        semanticEnrichment.receive(request.get_json())
     # split to data and metadata
-    data, metadata = ngsi_ld.ngsi_parser.parse_ngsi(
-        request.get_json())  # TODO check if metadata contains NA values, if so try to find some metadata
+    # data, metadata = ngsi_ld.ngsi_parser.parse_ngsi(
+    #     request.get_json())  # TODO check if metadata contains NA values, if so try to find some metadata
     # print(metadata)
-    # create data source in data source manager
-    semanticEnrichment.notify_datasource(metadata)
-    semanticEnrichment.receive(data)
+    # print(data)
+    # # create data source in data source manager
+    # semanticEnrichment.notify_datasource(metadata)
+    # semanticEnrichment.receive(data)
     # TODO change return value
     return "OK"
 

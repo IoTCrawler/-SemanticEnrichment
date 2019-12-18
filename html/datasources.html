@@ -17,7 +17,7 @@
         <th>QoI</th>
     </tr>
     {% for ds in datasources %}
-    <tr><td>{{ ds.id}}</td><td>{{ ds.dstype }}</td><td>{{ ds.lastupdate|datetime }}</td><td>{{ ds.metadata }}</td><td>{{ ds.qoi}}</td></tr>
+    <tr><td>{{ ds.stream_id}}</td><td>{{ ds.type }}</td><td>{{ ds.observedat|datetime }}</td><td><pre>{{ ds.stream }}</pre></td><td><pre>{{ ds.qoi}}</pre></td></tr>
     {% endfor %}
 </table>
 {% endif %}

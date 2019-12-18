@@ -1,31 +1,40 @@
 from metrics.abstract_metric import AbstractMetric
+from ngsi_ld import ngsi_parser
 
 
 class PlausibilityMetric(AbstractMetric):
 
-    def __init__(self, qoisystem, field=None):
-        super(PlausibilityMetric, self).__init__(qoisystem, field)
+    def __init__(self, qoisystem):
+        super(PlausibilityMetric, self).__init__(qoisystem)
         self.qoisystem = qoisystem
         self.name = "plausibility"
 
-    def update_metric(self, data):
+    def update_metric(self, observation):
         # for d in data['values']:
-        value = data['values'][self.field]
+        value = ngsi_parser.get_observation_value(observation)  # data['values'][self.field]
         # get metadata
-        metadata = self.qoisystem.metadata['fields'][self.field]
-        # get type
-        datatype = metadata['valuetype']
-        if datatype is not 'NA':
-            if datatype in ['int', 'integer', 'double', 'float']:
-                self.handle_number(value, metadata)
-        elif self.is_number(value):
-            self.handle_number(value, metadata)
-        else:
-            self.lastValue = 'NA'
+        # metadata = self.qoisystem.metadata['fields'][self.field]
+        stream_id = ngsi_parser.get_observation_stream(observation)
+        if stream_id:
+            stream = self.qoisystem.get_stream(stream_id)
+            if stream:
+                # get type
+                if 'valuetype' in stream:
+                    datatype = stream['valuetype']['value']
+                    if datatype is not 'NA':
+                        if datatype in ['int', 'integer', 'double', 'float']:
+                            self.handle_number(value, stream)
+                    elif self.is_number(value):
+                        self.handle_number(value, stream)
+                    else:
+                        self.lastValue = 'NA'
 
-    def handle_number(self, value, metadata):
-        if (metadata['min'] is not 'NA') & (metadata['max'] is not 'NA'):
-            if metadata['min'] <= value <= metadata['max']:
+    def handle_number(self, value, stream):
+        # TODO add error handling if min/max are not in stream
+        min = stream['min']['value']
+        max = stream['max']['value']
+        if (min is not 'NA') & (max is not 'NA'):
+            if min <= value <= max:
                 self.lastValue = 1
                 self.rp.update(1)
             else:

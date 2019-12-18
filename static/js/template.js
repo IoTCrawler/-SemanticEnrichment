@@ -1,4 +1,4 @@
-var headerHeight = $('head').outerHeight();
+let headerHeight = $('head').outerHeight();
 
 $(window).bind('scroll', function () {
     if ($(window).scrollTop() > headerHeight) {

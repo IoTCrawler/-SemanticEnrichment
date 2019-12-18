@@ -1,4 +1,5 @@
 import datetime
+from ngsi_ld import ngsi_parser
 from metrics.abstract_metric import AbstractMetric
 
 
@@ -10,9 +11,10 @@ class TimelinessAgeMetric(AbstractMetric):
         self.name = "age"
         self.unit = "seconds"
 
-    def update_metric(self, data):
-        if data['timestamp']:
-            age = (datetime.datetime.now() - datetime.datetime.fromtimestamp(data['timestamp'])).total_seconds()
+    def update_metric(self, observation):
+        time = ngsi_parser.get_observation_timestamp(observation)
+        if time:
+            age = (datetime.datetime.now() - datetime.datetime.fromtimestamp(time)).total_seconds()
             self.lastValue = age
         else:
             self.lastValue = 'NA'

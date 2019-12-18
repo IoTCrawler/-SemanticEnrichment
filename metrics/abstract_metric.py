@@ -6,17 +6,13 @@ from other.rewardpunishment import RewardAndPunishment
 class AbstractMetric(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, qoisystem, field=None):
+    def __init__(self, qoisystem):
         self.name = "abstract_metric"
         self.qoi_system = qoisystem
         self.rp = RewardAndPunishment(5)
         self.lastValue = 'NA'
         self.unit = 'NA'
         self.submetrics = []
-        if not field:
-            self.field = 'sensor'
-        else:
-            self.field = field
         self.logger = logging.getLogger('semanticenrichment')
 
     def add_submetric(self, submetric):
@@ -35,7 +31,9 @@ class AbstractMetric(object):
         self.update_metric(data)
 
     def get_qoivalue(self):
-        qoi_values = {'metric': self.name, 'for': self.field, 'last': self.lastValue,
+        qoi_values = {'metric': self.name,
+                      # 'for': self.field,
+                      'last': self.lastValue,
                       'continuous': 'NA' if self.rp.value() is 'NA' else '{:.2f}'.format(self.rp.value())}
         if self.unit is not 'NA':
             qoi_values['unit'] = self.unit
@@ -55,15 +53,11 @@ class AbstractMetric(object):
         ngsi = {
             "type": "Property",
             "value": "NA",  # TODO value set to NA as it cannot be null
-            "for": {
-                "type": "Relationship",
-                "object": self.qoi_system.metadata['id'] + [":" + self.field if self.field is not "sensor" else ""][0]
-            },
-            "last": {
+            "hasAbsoluteValue": {
                 "type": "Property",
                 "value": self.lastValue
             },
-            "continuous": {
+            "hasRatedValue": {
                 "type": "Property",
                 "value": self.rp.value()
             }
