@@ -1,3 +1,5 @@
+import threading
+from ngsi_ld import ngsi_parser
 from metrics.completenessmetric import CompletenessMetric
 from metrics.plausibilitymetric import PlausibilityMetric
 from metrics.timelinessagemmetric import TimelinessAgeMetric
@@ -16,7 +18,7 @@ class QoiSystem:
         self.add_metric(PlausibilityMetric(self))
         self.add_metric(ConcordanceMetric(self))
         self.add_metric(CompletenessMetric(self))
-        #we don't add submetrics anymore
+        # we don't add submetrics anymore
         # timeliness = TimelinessMetric(self)
         # timeliness.add_submetric(TimelinessAgeMetric(self))
         # timeliness.add_submetric(TimelinessFrequencyMetric(self))
@@ -24,9 +26,19 @@ class QoiSystem:
         self.add_metric(TimelinessAgeMetric(self))
         self.add_metric(TimelinessFrequencyMetric(self))
         self.add_metric(ArtificialityMetric(self))
+        self.timer = None
 
-    def add_metrics(self, metrics):
-        pass
+    def cancel_timer(self):
+        if isinstance(self.timer, threading.Timer):
+            self.timer.cancel()
+            self.timer = None
+
+    def start_timer(self):
+        # start timer for update interval + 10%
+        stream = self.ds_manager.get_stream(self.streamid)
+        updateinterval, unit = ngsi_parser.get_stream_updateinterval_and_unit(stream)
+        self.timer = threading.Timer(updateinterval * 1.1, self.timer_update)
+        self.timer.start()
 
     def add_metric(self, metric):
         self.metrics.append(metric)
@@ -35,8 +47,17 @@ class QoiSystem:
         return self.ds_manager.get_stream(stream_id)
 
     def update(self, data):
+        self.cancel_timer()
+
         for m in self.metrics:
             m.update(data)
+
+        self.start_timer()
+
+    def timer_update(self):
+        for m in self.metrics:
+            m.timer_update_metric()
+        self.start_timer()
 
     # iterate through all metrics to get qoi vector
     def get_qoivector(self):
@@ -57,13 +78,9 @@ class QoiSystem:
                 }
             ]
         }
-        i = 0
         for m in self.metrics:
-            if m.name in qoi_ngsi.keys():
-                qoi_ngsi[m.name + str(i)] = m.get_ngsi()    # TODO this is a workaround as one metric can only be used once as a key, this should be change as soon as one stream contains only one sensor!
-                i += 1
-            else:
+            if m.get_ngsi():
                 qoi_ngsi[m.name] = m.get_ngsi()
-            qoi_ngsi['@context'][1][m.name] = "https://w3id.org/iot/qoi#" + m.name
+                qoi_ngsi['@context'][1][m.name] = "https://w3id.org/iot/qoi#" + m.name
 
         return qoi_ngsi

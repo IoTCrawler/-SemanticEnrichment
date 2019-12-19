@@ -50,3 +50,6 @@ class PlausibilityMetric(AbstractMetric):
             return True
         except ValueError:
             return False
+
+    def timer_update_metric(self):
+        pass

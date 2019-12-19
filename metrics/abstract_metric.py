@@ -1,6 +1,7 @@
 import abc
 import logging
 from other.rewardpunishment import RewardAndPunishment
+from configuration import Config
 
 
 class AbstractMetric(object):
@@ -26,6 +27,10 @@ class AbstractMetric(object):
     def update_metric(self, data):
         pass
 
+    @abc.abstractmethod
+    def timer_update_metric(self):
+        pass
+
     def update(self, data):
         self.update_submetrics(data)
         self.update_metric(data)
@@ -33,8 +38,8 @@ class AbstractMetric(object):
     def get_qoivalue(self):
         qoi_values = {'metric': self.name,
                       # 'for': self.field,
-                      'last': self.lastValue,
-                      'continuous': 'NA' if self.rp.value() == 'NA' else '{:.2f}'.format(self.rp.value())}
+                      'hasAbsoluteValue': self.lastValue,
+                      'hasRatedValue': 'NA' if self.rp.value() == 'NA' else '{:.2f}'.format(self.rp.value())}
         if self.unit != 'NA':
             qoi_values['unit'] = self.unit
 
@@ -53,15 +58,23 @@ class AbstractMetric(object):
         ngsi = {
             "type": "Property",
             "value": "NA",  # TODO value set to NA as it cannot be null
-            "hasAbsoluteValue": {
-                "type": "Property",
-                "value": self.lastValue
-            },
-            "hasRatedValue": {
-                "type": "Property",
-                "value": self.rp.value()
-            }
         }
+        enable_na = Config.get('semanticenrichment', 'enablena')
+        if enable_na == "False":
+            if self.lastValue != 'NA':
+                ngsi['hasAbsoluteValue'] = {"type": "Property", "value": self.lastValue}
+            if self.rp.value() != 'NA':
+                ngsi['hasRatedValue'] = {"type": "Property", "value": self.rp.value()}
+        else:
+            ngsi['hasAbsoluteValue'] = {"type": "Property", "value": self.lastValue}
+            ngsi['hasRatedValue'] = {"type": "Property", "value": self.rp.value()}
+
         for submetric in self.submetrics:
             ngsi[submetric.name] = submetric.get_ngsi()
+
+        # check if metric contains entries if na values are not enables
+        if enable_na == "False":
+            if len(ngsi) <= 2:
+                return None
+
         return ngsi

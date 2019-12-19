@@ -19,4 +19,5 @@ class TimelinessAgeMetric(AbstractMetric):
         else:
             self.lastValue = 'NA'
 
-
+    def timer_update_metric(self):
+        pass

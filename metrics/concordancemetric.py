@@ -11,3 +11,6 @@ class ConcordanceMetric(AbstractMetric):
     def update_metric(self, data):
         # TODO implement!
         self.lastValue = 'NA'
+
+    def timer_update_metric(self):
+        pass

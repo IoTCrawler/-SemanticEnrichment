@@ -11,4 +11,5 @@ class TimelinessMetric(AbstractMetric):
     def update_metric(self, data):
         pass
 
-
+    def timer_update_metric(self):
+        pass

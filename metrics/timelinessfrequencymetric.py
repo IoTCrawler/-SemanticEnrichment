@@ -17,13 +17,11 @@ class TimelinessFrequencyMetric(AbstractMetric):
         if self.lastUpdate == 'NA':
             self.lastUpdate = current
         else:
-            stream_id = ngsi_parser.get_observation_stream(observation)
+            stream_id = self.qoi_system.streamid
             if stream_id:
                 stream = self.qoisystem.get_stream(stream_id)
                 updateinterval, unit = ngsi_parser.get_stream_updateinterval_and_unit(stream)
                 if updateinterval and unit:
-                    # update_interval = self.qoisystem.metadata['updateinterval']['frequency']
-                    # unit = self.qoisystem.metadata['updateinterval']['unit']
                     if unit in ("s", "seconds"):
                         diff = (current - self.lastUpdate).total_seconds()
                         self.lastUpdate = current
@@ -35,3 +33,13 @@ class TimelinessFrequencyMetric(AbstractMetric):
                     else:
                         self.logger.debug("Unit not supported for frequency metric:" + updateinterval)
                         self.lastValue = "NA"
+
+    def timer_update_metric(self):
+        if self.lastUpdate != 'NA':
+            # do an update without any observation
+            current = datetime.datetime.now()
+            diff = (current - self.lastUpdate).total_seconds()
+            # as this was timer based diff is bigger than updateinverval, therefore punish
+            self.lastValue = diff
+            self.rp.update(0)
+

@@ -23,3 +23,6 @@ class CompletenessMetric(AbstractMetric):
         #         self.lastValue = 0
         #     else:
         #         self.lastValue = 1
+
+    def timer_update_metric(self):
+        pass
