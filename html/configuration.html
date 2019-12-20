@@ -2,6 +2,7 @@
 {% extends "layout.html" %}
 
 {% block head %}
+<script src="{{ url_for('.static', filename='js/configuration.js') }}" async></script>
 {% endblock %}
 
 {% block body %}
@@ -15,7 +16,7 @@
 <!--                <th>Value</th>-->
 <!--            </tr>-->
             {% for key2, value2 in value.items() %}
-            <tr><td><form action="changeconfiguration" method="POST"><input name="section" type="hidden" value={{ key }}><input name="key" type="hidden" value={{ key2 }}><label for="value">{{ key2 }}</label><input id="value" name="value" value={{ value2 }}><button type="submit" name="changeconfiguration">Change</button></form></td></tr>
+            <tr><td><form action="changeconfiguration" method="POST"><input name="section" type="hidden" value={{ key }}><input name="key" type="hidden" value={{ key2 }}><label for="value">{{ key2 }}</label><input id="value" name="value" class="config" value={{ value2 }}><button type="submit" name="changeconfiguration">Change</button></form></td></tr>
             {% endfor %}
         </table>
     {% endfor %}
