@@ -69,7 +69,7 @@ def changeconfiguration():
     section = request.form.get('section')
     key = request.form.get('key')
     value = request.form.get('value')
-    
+
     #solution for checkboxes
     if value is None:
         value = "False"
