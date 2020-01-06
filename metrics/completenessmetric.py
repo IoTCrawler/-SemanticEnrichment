@@ -1,3 +1,4 @@
+from ngsi_ld import ngsi_parser
 from metrics.abstract_metric import AbstractMetric
 
 
@@ -7,22 +8,25 @@ class CompletenessMetric(AbstractMetric):
         super(CompletenessMetric, self).__init__(qoisystem)
         self.qoisystem = qoisystem
         self.name = "completeness"
+        self.missingValues = 0
 
     def update_metric(self, observation):
-        self.lastValue = 'NA'
-        # if self.field is "sensor":
-        #     nr = len(self.qoisystem.metadata['fields'])
-        #     missing = 0
-        #     for field in self.qoisystem.metadata['fields']:
-        #         if field not in data['values']:
-        #             missing += 1
-        #     self.lastValue = nr / missing if missing != 0 else 1
-        #     self.rp.update(0) if self.lastValue != 1 else self.rp.update(1)
-        # else:
-        #     if self.field not in data['values']:
-        #         self.lastValue = 0
-        #     else:
-        #         self.lastValue = 1
+        self.missingValues = 0
+        value = ngsi_parser.get_observation_value(observation)
+        if value:
+            self.missingValues = 0
+            self.lastValue = self.missingValues
+            self.rp.update(1)
+        else:
+            self.missingValues += 1
+            self.lastValue = self.missingValues
+            self.rp.update(0)
+
 
     def timer_update_metric(self):
-        pass
+        #timer update means we did not receive any data for the last planned update time
+        #so we have to punish
+        #TODO check is this is the only thing to do!
+        self.rp.update(0)
+        self.missingValues += 1
+        self.lastValue = self.missingValues
