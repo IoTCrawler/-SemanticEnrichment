@@ -8,5 +8,12 @@ for (let element of elements){
         if (value == "True"){
             element.checked="checked"
         }
+        element.addEventListener('change', (event) => {
+            if (event.target.checked) {
+                element.value = "True";
+            } else {
+                element.value = "False";
+            }
+        })
     }
 }

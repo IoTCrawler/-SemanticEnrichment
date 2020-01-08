@@ -73,8 +73,6 @@ def changeconfiguration():
     #solution for checkboxes
     if value is None:
         value = "False"
-    else:
-        value = "True"
 
     Config.update(section, key, value)
     # check if logging changed
