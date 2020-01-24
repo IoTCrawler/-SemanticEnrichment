@@ -155,11 +155,10 @@ def deletemetadata():
     return redirect(url_for('.showmetadata'))
 
 
-# @cherrypy.tools.json_in()
 @bp.route('/callback', methods=['POST'])
 def callback():
     logger.debug("callback called" + str(request.get_json()))
-    print(request.get_json())
+    # print(request.get_json())
 
     ngsi_id, ngsi_type = ngsi_ld.ngsi_parser.get_IDandType(request.get_json())
 

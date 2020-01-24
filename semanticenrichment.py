@@ -41,35 +41,38 @@ class SemanticEnrichment:
 
     def receive(self, observation):
         # get stream id from observation
-        # stream_id = observation['belongsTo']['value']
         stream_id = ngsi_parser.get_observation_stream(observation)
 
-        self.qoisystem_map[stream_id].update(observation)
+        try:
+            self.qoisystem_map[stream_id].update(observation)
 
-        # save qoi data to MDR
-        qoi_ngsi = self.qoisystem_map[stream_id].get_qoivector_ngsi()
-        logger.debug("Formatting qoi data as ngsi-ld: " + str(qoi_ngsi))
+            # save qoi data to MDR
+            qoi_ngsi = self.qoisystem_map[stream_id].get_qoivector_ngsi()
+            logger.debug("Formatting qoi data as ngsi-ld: " + str(qoi_ngsi))
 
-        #  relationship to be added to the dataset to link QoI
-        ngsi = {
-            "hasQuality": {
-                "type": "Relationship",
-                "object": qoi_ngsi['id']
-            },
-            "@context": [
-                "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld", {
-                    "hasQuality": "https://w3id.org/iot/qoi#hasQuality"
-                }
-            ]
-        }
-        # update locally
-        self.datasource_manager.link_qoi(stream_id, qoi_ngsi['id'])
+            #  relationship to be added to the dataset to link QoI
+            ngsi = {
+                "hasQuality": {
+                    "type": "Relationship",
+                    "object": qoi_ngsi['id']
+                },
+                "@context": [
+                    "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld", {
+                        "hasQuality": "https://w3id.org/iot/qoi#hasQuality"
+                    }
+                ]
+            }
+            # update locally
+            self.datasource_manager.link_qoi(stream_id, qoi_ngsi['id'])
 
-        # TODO save QoI to MDR
-        # save qoi data
-        self.create_ngsi_entity(qoi_ngsi)
-        # save relationship for qoi data
-        self.add_ngsi_attribute(ngsi, stream_id)
+            # TODO save QoI to MDR
+            # save qoi data
+            self.create_ngsi_entity(qoi_ngsi)
+            # save relationship for qoi data
+            self.add_ngsi_attribute(ngsi, stream_id)
+        except KeyError as e:
+            logger.error("There is no stream " + stream_id + " found for this observation!")
+
 
     def get_qoivector_ngsi(self, sourceid):
         return self.qoisystem_map[sourceid].get_qoivector_ngsi()
