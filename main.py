@@ -29,6 +29,7 @@ logger.addHandler(deque_handler)
 logger.info("logger ready")
 
 bp = Blueprint('semanticenrichment', __name__, static_url_path='', static_folder='static', template_folder='html')
+bp2 = Blueprint('', __name__, static_url_path='', static_folder='static', template_folder='html')  #second blueprint for return liveness probe for kubernets
 semanticEnrichment = SemanticEnrichment()
 
 
@@ -179,10 +180,16 @@ def callback():
     # TODO change return value
     return "OK"
 
+@bp2.route('/', methods=['GET'])
+def status():
+    return redirect(url_for('semanticenrichment.index'))
+
+
 
 app = Flask(__name__)
 app.secret_key = 'e3645c25b6d5bf67ae6da68c824e43b530e0cb43b0b9432b'
 app.register_blueprint(bp, url_prefix='/semanticenrichment')
+app.register_blueprint(bp2, url_prefix='/')
 app.jinja_env.filters['datetime'] = formate_datetime
 
 if __name__ == "__main__":
