@@ -182,7 +182,8 @@ def callback():
 
 @bp2.route('/', methods=['GET'])
 def status():
-    return redirect(url_for('semanticenrichment.index'))
+    return "running"
+    # return redirect(url_for('semanticenrichment.index'))
 
 
 
