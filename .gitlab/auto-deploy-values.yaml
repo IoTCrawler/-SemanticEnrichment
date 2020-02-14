@@ -1,0 +1,17 @@
+# Default values for chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+livenessProbe:
+  httpGet:
+    path: "/semanticenrichment/status"
+    port: 8081
+    initialDelaySeconds: 10
+    timeoutSeconds: 10
+    perdiodSeconds: 10
+readinessProbe:
+  httpGet:
+    path: "/semanticenrichment/status"
+    port: 8081
+    initialDelaySeconds: 10
+    timeoutSeconds: 2
+
