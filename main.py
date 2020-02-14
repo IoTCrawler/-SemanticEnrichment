@@ -185,6 +185,9 @@ def status():
     return "running"
     # return redirect(url_for('semanticenrichment.index'))
 
+@bp.route('/status', methods=['GET'])
+def status():
+    return "running"
 
 
 app = Flask(__name__)
