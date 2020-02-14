@@ -8,6 +8,8 @@ COPY metrics /metrics
 COPY ngsi_ld /ngsi_ld
 COPY other /other
 
+ENV PORT 8081
+
 ADD config.ini configuration.py datasource_manager.py qoi_system.py semanticenrichment.py main.py /
 
 CMD python3 main.py
