@@ -3,9 +3,10 @@
   "type": "Subscription",
   "entities": [
     {
-      "type": "sensor"
+      "type": "sosa:sensor"
     }
   ],
+  "timeInterval": 1,
   "notification": {
     "attributes": [],
     "format": "keyValues",
@@ -17,7 +18,7 @@
   "@context": [
     "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",
     {
-      "sensor": "http://www.w3.org/ns/sosa/Sensor"
+      "sosa": "http://www.w3.org/ns/sosa/"
     }
   ]
 }

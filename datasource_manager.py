@@ -1,12 +1,12 @@
+import datetime
 import logging
 import threading
 
 import requests
-import datetime
 
+from configuration import Config
 from ngsi_ld import ngsi_parser
 from ngsi_ld.ngsi_parser import NGSI_Type
-from configuration import Config
 from other.exceptions import BrokerError
 from other.metadata_matcher import MetadataMatcher
 
@@ -46,8 +46,7 @@ class DatasourceManager:
         self.headers.update({'accept': 'application/ld+json'})
         self.headers.update({'X-AUTH-TOKEN': Config.get('NGSI', 'token')})
         self.matcher = MetadataMatcher()
-        t = threading.Thread(target=self.get_active_subscriptions)  # put into thread to not block server
-        t.start()
+        self.get_active_subscriptions()
 
     def update(self, ngsi_data):
         # check type
@@ -72,6 +71,10 @@ class DatasourceManager:
             pass
 
     def add_subscription(self, host, port, subscription):
+        t = threading.Thread(target=self._add_subscription, args=(host, port, subscription))
+        t.start()
+
+    def _add_subscription(self, host, port, subscription):
         # subscribe to ngsi-ld endpoint
         sub = Subscription(subscription['id'], host, port, subscription)
 
@@ -80,6 +83,7 @@ class DatasourceManager:
         logger.info("Adding subscription: " + str(r.status_code) + " " + r.text)
         if r.status_code != 201:
             logger.debug("error creating subscription: " + r.text)
+            # emit('Error', r.text)
             raise BrokerError(r.text)
         else:
             self.subscriptions[sub.id] = sub
@@ -117,6 +121,10 @@ class DatasourceManager:
     # TODO this method is mainly for testing etc as subscriptions are lost during restart,
     # in addition ngrok won't fit for old subscriptions
     def get_active_subscriptions(self):
+        t = threading.Thread(target=self._get_active_subscriptions)  # put into thread to not block server
+        t.start()
+
+    def _get_active_subscriptions(self):
         # get old subscriptions for semantic enrichment (starting with 'SE_')
         host = Config.get('NGSI', 'host')
         port = Config.get('NGSI', 'port')

@@ -37,8 +37,9 @@ class QoiSystem:
         # start timer for update interval + 10%
         stream = self.ds_manager.get_stream(self.streamid)
         updateinterval, unit = ngsi_parser.get_stream_updateinterval_and_unit(stream)
-        self.timer = threading.Timer(updateinterval * 1.1, self.timer_update)
-        self.timer.start()
+        if updateinterval:
+            self.timer = threading.Timer(updateinterval * 1.1, self.timer_update)
+            self.timer.start()
 
     def add_metric(self, metric):
         self.metrics.append(metric)
@@ -69,18 +70,16 @@ class QoiSystem:
     def get_qoivector_ngsi(self):
         qoi_ngsi = {
             "id": "urn:ngsi-ld:QoI:" + self.streamid,
-            "type": "Quality",
+            "type": "qoi:Quality",
             "@context": [
                 "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld", {
-                    "Quality": "https://w3id.org/iot/qoi#Quality",
-                    "hasRatedValue": "https://w3id.org/iot/qoi#hasRatedValue",
-                    "hasAbsoluteValue": "https://w3id.org/iot/qoi#hasAbsoluteValue"
+                    "qoi": "https://w3id.org/iot/qoi#",
                 }
             ]
         }
         for m in self.metrics:
             if m.get_ngsi():
-                qoi_ngsi[m.name] = m.get_ngsi()
-                qoi_ngsi['@context'][1][m.name] = "https://w3id.org/iot/qoi#" + m.name
+                qoi_ngsi['qoi:' + m.name] = m.get_ngsi()
+                # qoi_ngsi['@context'][1][m.name] = "https://w3id.org/iot/qoi#" + m.name
 
         return qoi_ngsi

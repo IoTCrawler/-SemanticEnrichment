@@ -22,11 +22,10 @@ class CompletenessMetric(AbstractMetric):
             self.lastValue = self.missingValues
             self.rp.update(0)
 
-
     def timer_update_metric(self):
-        #timer update means we did not receive any data for the last planned update time
-        #so we have to punish
-        #TODO check is this is the only thing to do!
+        # timer update means we did not receive any data for the last planned update time
+        # so we have to punish
+        # TODO check is this is the only thing to do!
         self.rp.update(0)
         self.missingValues += 1
         self.lastValue = self.missingValues

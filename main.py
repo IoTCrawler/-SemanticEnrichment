@@ -1,14 +1,16 @@
-import json
-import uuid
-import logging
-import ngsi_ld.ngsi_parser
 import datetime
-from ngsi_ld.ngsi_parser import NGSI_Type
+import json
+import logging
+import uuid
+
 from flask import Flask, redirect, render_template, url_for, request, Blueprint, flash
-from semanticenrichment import SemanticEnrichment
+
+import ngsi_ld.ngsi_parser
+from configuration import Config
+from ngsi_ld.ngsi_parser import NGSI_Type
 from other.exceptions import BrokerError
 from other.logging import DequeLoggerHandler
-from configuration import Config
+from semanticenrichment import SemanticEnrichment
 
 # Configure logging
 logger = logging.getLogger('semanticenrichment')
@@ -29,7 +31,8 @@ logger.addHandler(deque_handler)
 logger.info("logger ready")
 
 bp = Blueprint('semanticenrichment', __name__, static_url_path='', static_folder='static', template_folder='html')
-bp2 = Blueprint('', __name__, static_url_path='', static_folder='static', template_folder='html')  #second blueprint for return liveness probe for kubernets
+bp2 = Blueprint('', __name__, static_url_path='', static_folder='static',
+                template_folder='html')  # second blueprint for return liveness probe for kubernets
 semanticEnrichment = SemanticEnrichment()
 
 
@@ -71,7 +74,7 @@ def changeconfiguration():
     key = request.form.get('key')
     value = request.form.get('value')
 
-    #solution for checkboxes
+    # solution for checkboxes
     if value is None:
         value = "False"
 
@@ -84,6 +87,7 @@ def changeconfiguration():
 
 @bp.route('/addsubscription', methods=['POST'])
 def addsubscription():
+
     subscription = request.form.get('subscription')
     try:
         semanticEnrichment.add_subscription(Config.get('NGSI', 'host'), Config.get('NGSI', 'port'),
@@ -113,7 +117,7 @@ def deletesubscription():
 def showdatasources():
     datasources = []
     for stream_id, stream in semanticEnrichment.get_streams().items():
-        class datasource:   #local class to be returned to html page
+        class datasource:  # local class to be returned to html page
             pass
 
         datasource.stream_id = stream_id
@@ -158,17 +162,29 @@ def deletemetadata():
 
 @bp.route('/callback', methods=['POST'])
 def callback():
-    logger.debug("callback called" + str(request.get_json()))
-    # print(request.get_json())
+    data = request.get_json()
+    logger.debug("callback called" + str(data))
+    print("callback called" + str(data))
 
-    ngsi_id, ngsi_type = ngsi_ld.ngsi_parser.get_IDandType(request.get_json())
+    ngsi_id, ngsi_type = ngsi_ld.ngsi_parser.get_IDandType(data)
 
-    # notify about new iotstream, sensor, streamobservation, initialise qoi system if new stream
-    semanticEnrichment.notify_datasource(request.get_json())
+    # TODO check if notification which might contain other entities
+    # TODO include threading for every entity to avoid blocking?
+    if ngsi_type is NGSI_Type.Notification:
+        data = ngsi_ld.ngsi_parser.get_notification_entities(data)
+    else:
+        data = [data]
 
-    # inform about new data
-    if ngsi_type is NGSI_Type.StreamObservation:
-        semanticEnrichment.receive(request.get_json())
+    for entity in data:
+        ngsi_id, ngsi_type = ngsi_ld.ngsi_parser.get_IDandType(entity)
+        print("entity", entity)
+
+        # notify about new iotstream, sensor, streamobservation, initialise qoi system if new stream
+        semanticEnrichment.notify_datasource(entity)
+
+        # inform about new data
+        if ngsi_type is NGSI_Type.StreamObservation:
+            semanticEnrichment.receive(entity)
     # split to data and metadata
     # data, metadata = ngsi_ld.ngsi_parser.parse_ngsi(
     #     request.get_json())  # TODO check if metadata contains NA values, if so try to find some metadata
@@ -180,10 +196,12 @@ def callback():
     # TODO change return value
     return "OK"
 
+
 @bp2.route('/', methods=['GET'])
 def status():
     return "running"
     # return redirect(url_for('semanticenrichment.index'))
+
 
 @bp.route('/status', methods=['GET'])
 def status():
@@ -200,49 +218,3 @@ if __name__ == "__main__":
     app.run(host=Config.get('semanticenrichment', 'host'), port=int(Config.get('semanticenrichment', 'port')),
             debug=False)
 
-# TODO
-# which metric for whole stream, which for every single value?
-# completeness for whole data
-# plausibility for single value
-# timeliness whole data
-# concordance
-# artificiality
-
-# store for common sensor types to calc plausibility? e.g. store common min max values for temp sensors
-
-# in which format will we receive data?
-# do we need a clock for replay experiments? maybe not as we will only get live data or complete datasets
-# we should have qoi for a single measurement as well as for data sources?
-
-# # sample data
-# data = {
-#     "id": 1,
-#     "timestamp": 121232345,
-#     "values": {
-#         "value1": 1,
-#         "value2": -100
-#     }
-# }
-#
-# metadata = {
-#     "id": 1,
-#     "type": "weather",
-#     "updateinterval": {
-#         "frequency": "100",
-#         "unit": "seconds"
-#     },
-#     "fields": {
-#         "value1": {
-#             "sensortype": "temperature",
-#             "valuetype": "int",
-#             "min": -20,
-#             "max": 40
-#         },
-#         "value2": {
-#             "sensortype": "humidity",
-#             "valuetype": "int",
-#             "min": 0,
-#             "max": 100
-#         }
-#     }
-# }

@@ -19,8 +19,10 @@ class PlausibilityMetric(AbstractMetric):
             stream = self.qoisystem.get_stream(stream_id)
             if stream:
                 # get type
-                if 'valuetype' in stream:
-                    datatype = stream['valuetype']['value']
+                datatype = ngsi_parser.get_stream_valuetype(stream)
+                if datatype:
+                    datatype = ngsi_parser.get_stream_valuetype(stream)
+                    # datatype = stream['valuetype']['value']
                     if datatype != 'NA':
                         if datatype in ['int', 'integer', 'double', 'float']:
                             self.handle_number(value, stream)
@@ -31,8 +33,10 @@ class PlausibilityMetric(AbstractMetric):
 
     def handle_number(self, value, stream):
         # TODO add error handling if min/max are not in stream
-        min = stream['min']['value']
-        max = stream['max']['value']
+        min = ngsi_parser.get_stream_min(stream)
+        max = ngsi_parser.get_stream_max(stream)
+        # min = stream['min']['value']
+        # max = stream['max']['value']
         if (min != 'NA') & (max != 'NA'):
             if min <= value <= max:
                 self.lastValue = 1

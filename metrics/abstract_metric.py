@@ -38,10 +38,10 @@ class AbstractMetric(object):
     def get_qoivalue(self):
         qoi_values = {'metric': self.name,
                       # 'for': self.field,
-                      'hasAbsoluteValue': self.lastValue,
-                      'hasRatedValue': 'NA' if self.rp.value() == 'NA' else '{:.2f}'.format(self.rp.value())}
+                      'qoi:hasAbsoluteValue': self.lastValue,
+                      'qoi:hasRatedValue': 'NA' if self.rp.value() == 'NA' else '{:.2f}'.format(self.rp.value())}
         if self.unit != 'NA':
-            qoi_values['unit'] = self.unit
+            qoi_values['qoi:unit'] = self.unit
 
         if len(self.submetrics) > 0:
             subvalues = []
@@ -62,12 +62,12 @@ class AbstractMetric(object):
         enable_na = Config.get('semanticenrichment', 'enablena')
         if enable_na == "False":
             if self.lastValue != 'NA':
-                ngsi['hasAbsoluteValue'] = {"type": "Property", "value": self.lastValue}
+                ngsi['qoi:hasAbsoluteValue'] = {"type": "Property", "value": self.lastValue}
             if self.rp.value() != 'NA':
-                ngsi['hasRatedValue'] = {"type": "Property", "value": self.rp.value()}
+                ngsi['qoi:hasRatedValue'] = {"type": "Property", "value": self.rp.value()}
         else:
-            ngsi['hasAbsoluteValue'] = {"type": "Property", "value": self.lastValue}
-            ngsi['hasRatedValue'] = {"type": "Property", "value": self.rp.value()}
+            ngsi['qoi:hasAbsoluteValue'] = {"type": "Property", "value": self.lastValue}
+            ngsi['qoi:hasRatedValue'] = {"type": "Property", "value": self.rp.value()}
 
         for submetric in self.submetrics:
             ngsi[submetric.name] = submetric.get_ngsi()

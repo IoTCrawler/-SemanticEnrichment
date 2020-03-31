@@ -9,6 +9,7 @@ class NGSI_Type(Enum):
     StreamObservation = 1
     IoTStream = 2
     Sensor = 3
+    Notification = 4
 
 
 def get_type(ngsi_data):
@@ -19,11 +20,23 @@ def get_type(ngsi_data):
         return NGSI_Type.StreamObservation
     elif ngsi_type in ("sensor", "http://www.w3.org/ns/sosa/Sensor"):
         return NGSI_Type.Sensor
+    elif ngsi_type in "Notification":
+        return NGSI_Type.Notification
+
+
+def get_notification_entities(notification):
+    try:
+        return notification['data']
+    except KeyError:
+        return None
 
 
 def get_observation_stream(observation):
     try:
-        return observation['belongsTo']['object']
+        if 'belongsTo' in observation:
+            return observation['belongsTo']['object']
+        elif 'http://purl.org/iot/ontology/iot-stream#belongsTo' in observation:
+            return observation['http://purl.org/iot/ontology/iot-stream#belongsTo']['object']
     except KeyError:
         return None
 
@@ -32,14 +45,21 @@ def get_observation_value(observation):
     try:
         return observation['hasSimpleResult']['value']
     except KeyError:
-        return None
+        try:
+            return observation['http://www.w3.org/ns/sosa/hasSimpleResult']['value']
+        except KeyError:
+            return None
 
 
 def get_observation_timestamp(observation):
     try:
-        return dateutil.parser.parse(observation['hasSimpleResult']['observedAt']).timestamp()
-    except (KeyError, dateutil.parser.ParserError):
-        return None
+        return dateutil.parser.parse(observation['sosa:hasSimpleResult']['observedAt']).timestamp()
+    except (TypeError, KeyError, dateutil.parser.ParserError):
+        try:
+            return dateutil.parser.parse(
+                observation['http://www.w3.org/ns/sosa/hasSimpleResult']['observedAt']).timestamp()
+        except (TypeError, KeyError, dateutil.parser.ParserError):
+            return None
 
 
 def get_IDandType(ngsi_data):
@@ -51,30 +71,55 @@ def get_IDandType(ngsi_data):
 
 def get_stream_min(stream):
     try:
-        return stream['min']['value']
+        return stream['qoi:min']['value']
     except KeyError:
-        return None
+        try:
+            return stream['https://w3id.org/iot/qoi#min']['value']
+        except KeyError:
+            return None
 
 
 def get_stream_max(stream):
     try:
-        return stream['max']['value']
+        return stream['qoi:max']['value']
     except KeyError:
-        return None
+        try:
+            return stream['https://w3id.org/iot/qoi#max']['value']
+        except KeyError:
+            return None
+
+
+def get_stream_valuetype(stream):
+    try:
+        return stream['qoi:valuetype']['value']
+    except KeyError:
+        try:
+            return stream['https://w3id.org/iot/qoi#valuetype']['value']
+        except KeyError:
+            return None
 
 
 def get_stream_updateinterval_and_unit(stream):
     try:
-        return stream['updateinterval']['value'], stream['updateinterval']['unit']['value']
+        return stream['qoi:updateinterval']['value'], stream['qoi:updateinterval']['qoi:unit']['value']
     except KeyError:
-        return None, None
+        try:
+            return stream['https://w3id.org/iot/qoi#updateinterval']['value'], \
+                   stream['https://w3id.org/iot/qoi#updateinterval']['https://w3id.org/iot/qoi#unit']['value']
+        except KeyError:
+
+            return None, None
 
 
 def get_stream_observes(stream):
     try:
+        # TODO observes can also be a full url
         return stream['observes']['object']
     except KeyError:
-        return None
+        try:
+            return stream['http://www.w3.org/ns/sosa/observes']['object']
+        except KeyError:
+            return None
 
 # def fixurlkeys(data):
 #     tmpobj = {}

@@ -52,27 +52,25 @@ class SemanticEnrichment:
 
             #  relationship to be added to the dataset to link QoI
             ngsi = {
-                "hasQuality": {
+                "qoi:hasQuality": {
                     "type": "Relationship",
                     "object": qoi_ngsi['id']
                 },
                 "@context": [
                     "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld", {
-                        "hasQuality": "https://w3id.org/iot/qoi#hasQuality"
+                        "qoi": "https://w3id.org/iot/qoi#"
                     }
                 ]
             }
             # update locally
             self.datasource_manager.link_qoi(stream_id, qoi_ngsi['id'])
 
-            # TODO save QoI to MDR
             # save qoi data
             self.create_ngsi_entity(qoi_ngsi)
             # save relationship for qoi data
             self.add_ngsi_attribute(ngsi, stream_id)
         except KeyError as e:
-            logger.error("There is no stream " + stream_id + " found for this observation!")
-
+            logger.error("There is no stream " + str(stream_id) + " found for this observation!")
 
     def get_qoivector_ngsi(self, sourceid):
         return self.qoisystem_map[sourceid].get_qoivector_ngsi()
