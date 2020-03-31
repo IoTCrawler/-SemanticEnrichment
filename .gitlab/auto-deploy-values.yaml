@@ -2,8 +2,8 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 service:
-  externalPort: 6000
-  internalPort: 6000
+  externalPort: 8081
+  internalPort: 8081
 livenessProbe:
   httpGet:
     path: "/semanticenrichment/status"
