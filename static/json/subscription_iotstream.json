@@ -6,7 +6,6 @@
       "type": "iot-stream:IotStream"
     }
   ],
-  "timeInterval": 1,
   "notification": {
     "attributes": [],
     "format": "keyValues",

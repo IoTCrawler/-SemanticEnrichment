@@ -6,7 +6,6 @@
       "type": "sosa:sensor"
     }
   ],
-  "timeInterval": 1,
   "notification": {
     "attributes": [],
     "format": "keyValues",

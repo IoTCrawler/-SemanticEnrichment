@@ -10,16 +10,19 @@ class NGSI_Type(Enum):
     IoTStream = 2
     Sensor = 3
     Notification = 4
+    ObservableProperty = 5
 
 
 def get_type(ngsi_data):
     ngsi_type = ngsi_data['type']
-    if ngsi_type in ("iotstream", "http://purl.org/iot/ontology/iot-stream#IotStream"):
+    if ngsi_type in ("iot-stream:IotStrea,", "http://purl.org/iot/ontology/iot-stream#IotStream"):
         return NGSI_Type.IoTStream
-    elif ngsi_type in ("StreamObservation", "http://purl.org/iot/ontology/iot-stream#StreamObservation"):
+    elif ngsi_type in ("iot-stream:StreamObservation", "http://purl.org/iot/ontology/iot-stream#StreamObservation"):
         return NGSI_Type.StreamObservation
-    elif ngsi_type in ("sensor", "http://www.w3.org/ns/sosa/Sensor"):
+    elif ngsi_type in ("sosa:Sensor", "http://www.w3.org/ns/sosa/Sensor"):
         return NGSI_Type.Sensor
+    elif ngsi_type in ("sosa:ObservableProperty", "http://www.w3.org/ns/sosa/ObservableProperty"):
+        return NGSI_Type.ObservableProperty
     elif ngsi_type in "Notification":
         return NGSI_Type.Notification
 
