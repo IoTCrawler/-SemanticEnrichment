@@ -90,8 +90,7 @@ def addsubscription():
 
     subscription = request.form.get('subscription')
     try:
-        semanticEnrichment.add_subscription(Config.get('NGSI', 'host'), Config.get('NGSI', 'port'),
-                                            json.loads(subscription))
+        semanticEnrichment.add_subscription(json.loads(subscription))
     except BrokerError as e:
         flash('Error while adding subscription:' + str(e))
     return redirect(url_for('.showsubscriptions'))
@@ -175,9 +174,9 @@ def callback():
     else:
         data = [data]
 
+
     for entity in data:
         ngsi_id, ngsi_type = ngsi_ld.ngsi_parser.get_IDandType(entity)
-        print("entity", entity)
 
         # notify about new iotstream, sensor, streamobservation, initialise qoi system if new stream
         semanticEnrichment.notify_datasource(entity)

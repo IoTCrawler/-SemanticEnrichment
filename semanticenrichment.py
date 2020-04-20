@@ -31,6 +31,9 @@ class SemanticEnrichment:
 
         # check if type is stream, if yes we have to initialise/update qoi
         ngsi_id, ngsi_type = ngsi_parser.get_IDandType(ngsi_data)
+
+        print("type", ngsi_type)
+
         if ngsi_type is NGSI_Type.IoTStream:
             if ngsi_id not in self.qoisystem_map:
                 self.qoisystem_map[ngsi_id] = QoiSystem(ngsi_id, self.datasource_manager)
