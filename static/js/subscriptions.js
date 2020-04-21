@@ -24,3 +24,6 @@ function updateSubscription(id, endpoint) {
     });
 }
 
+$(document).ready(function() {
+    $('#subscriptions').DataTable();
+} );

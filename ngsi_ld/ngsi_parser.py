@@ -67,9 +67,8 @@ def get_observation_timestamp(observation):
 
 def get_IDandType(ngsi_data):
     try:
-        print("bla", ngsi_data['id'], get_type(ngsi_data))
         return ngsi_data['id'], get_type(ngsi_data)
-    except KeyError as e:
+    except KeyError:
         return None, None
 
 
@@ -124,6 +123,7 @@ def get_sensor_observes(sensor):
         except KeyError:
             return None
 
+
 def get_sensor_madeObservation(sensor):
     try:
         return sensor['sosa:madeObservation']['object']
@@ -132,6 +132,7 @@ def get_sensor_madeObservation(sensor):
             return sensor['http://www.w3.org/ns/sosa/madeObservation']['object']
         except KeyError:
             return None
+
 
 def get_stream_generatedBy(stream):
     try:
@@ -151,5 +152,3 @@ def get_obsproperty_label(obsproperty):
             return obsproperty['http://www.w3.org/2000/01/rdf-schema#label']['object']
         except KeyError:
             return None
-
-

@@ -3,7 +3,7 @@
   "type": "Subscription",
   "entities": [
     {
-      "type": "sosa:sensor"
+      "type": "sosa:Sensor"
     }
   ],
   "notification": {

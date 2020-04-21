@@ -12,13 +12,14 @@ logger = logging.getLogger('semanticenrichment')
 headers = {}
 headers.update({'content-type': 'application/ld+json'})
 headers.update({'accept': 'application/ld+json'})
-# self.headers.update({'X-AUTH-TOKEN': Config.get('NGSI', 'token')})
+
 
 # TODO this method is mainly for testing etc as subscriptions are lost during restart,
 # in addition ngrok won't fit for old subscriptions
 def get_active_subscriptions(sublist):
     t = threading.Thread(target=_get_active_subscriptions, args=(sublist,))  # put into thread to not block server
     t.start()
+
 
 def _get_active_subscriptions(subscriptions):
     # get old subscriptions for semantic enrichment (starting with 'SE_')
@@ -47,9 +48,11 @@ def handlejsonsubscription(data, host, port, subscriptions):
     else:
         logger.info("not our subscription")
 
+
 def add_subscription(subscription, subscriptionlist):
     t = threading.Thread(target=_add_subscription, args=(subscription, subscriptionlist))
     t.start()
+
 
 def _add_subscription(subscription, subscriptions):
     host = Config.get('NGSI', 'host')
@@ -57,13 +60,6 @@ def _add_subscription(subscription, subscriptions):
     # subscribe to ngsi-ld endpoint
     sub = Subscription(subscription['id'], host, port, subscription)
 
-    # server_url = "http://" + host + ":" + str(port) + "/ngsi-ld/v1/subscriptions/"
-    # r = requests.post(server_url, json=subscription, headers=headers)
-    # logger.info("Adding subscription: " + str(r.status_code) + " " + r.text)
-    # ngsi_add_subscription(subscription)
-    # if r.status_code != 201:
-    #     logger.debug("error creating subscription: " + r.text)
-    # else:
     if ngsi_add_subscription(subscription) is not None:
         subscriptions[sub.id] = sub
 
@@ -80,9 +76,11 @@ def ngsi_add_subscription(subscription):
         return None
     return r.text
 
+
 def del_subscription(subscription):
     t = threading.Thread(target=_del_subscription, args=(subscription,))
     t.start()
+
 
 def _del_subscription(subscription):
     server_url = "http://" + subscription.host + ":" + str(subscription.port) + "/ngsi-ld/v1/subscriptions/"
@@ -94,6 +92,7 @@ def _del_subscription(subscription):
 def add_ngsi_attribute(ngsi_msg, eid):
     t = threading.Thread(target=_add_ngsi_attribute, args=(ngsi_msg, eid,))
     t.start()
+
 
 def _add_ngsi_attribute(ngsi_msg, eid):
     try:
@@ -107,9 +106,11 @@ def _add_ngsi_attribute(ngsi_msg, eid):
     except requests.exceptions.ConnectionError as e:
         logger.error("Error while adding attribute to ngsi entity" + str(e))
 
+
 def create_ngsi_entity(ngsi_msg):
     t = threading.Thread(target=_create_ngsi_entity, args=(ngsi_msg,))
     t.start()
+
 
 def _create_ngsi_entity(ngsi_msg):
     try:
@@ -120,13 +121,15 @@ def _create_ngsi_entity(ngsi_msg):
         r = requests.post(url, json=ngsi_msg, headers=headers)
         if r.status_code == 409:
             logger.debug("Entity exists, patch it")
-            patch_ngsi_entity(ngsi_msg)
+            _patch_ngsi_entity(ngsi_msg)
     except requests.exceptions.ConnectionError as e:
         logger.error("Error while creating ngsi entity" + str(e))
 
-def patch_ngsi_entity(self, ngsi_msg):
+
+def patch_ngsi_entity(ngsi_msg):
     t = threading.Thread(target=_patch_ngsi_entity, args=(ngsi_msg,))
     t.start()
+
 
 def _patch_ngsi_entity(ngsi_msg):
     try:
@@ -141,18 +144,22 @@ def _patch_ngsi_entity(ngsi_msg):
     except requests.exceptions.ConnectionError as e:
         logger.error("Error while patching ngsi entity" + str(e))
 
+
 def get_entity_updateList(entityid, entitylist):
     t = threading.Thread(target=_get_entity_updateList, args=(entityid, entitylist))
     t.start()
+
 
 def _get_entity_updateList(entityid, entitylist):
     entity = get_entity(entityid)
     if entity:
         entitylist[entityid] = entity
 
+
 def get_entity(entitiyid):
     try:
-        url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + entitiyid
+        url = "http://" + Config.get('NGSI', 'host') + ":" + str(
+            Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + entitiyid
         r = requests.get(url, headers=headers)
         if r.status_code != 200:
             logger.error("Error requesting entity " + entitiyid + ": " + r.text)
@@ -179,59 +186,60 @@ def subscribe_forTypeId(ngsi_type, entityId, sublist):
     t = threading.Thread(target=_subscribe_forTypeId, args=(ngsi_type, entityId, sublist))
     t.start()
 
+
 def _subscribe_forTypeId(ngsi_type, entityId, sublist):
-    #TODO check if subscription already in sublist
-    #TODO solution is not optimal... but no other option at the moment
+    logger.debug("Subscribe for " + str(ngsi_type) + " " + entityId)
+    # TODO check if subscription already in sublist
+    # TODO solution is not optimal... but no other option at the moment
     for key, value in sublist.items():
-        sub = value
-        tmposid = sub['entities'][0]['id']
-        if tmposid is entityId:
-            print("Subscription for", tmposid, "already existing!")
-            return
+        sub = value.subscription
+        try:
+            tmposid = sub['entities'][0]['id']
+            if tmposid == entityId:
+                logger.debug("Subscription for " + tmposid + " already existing!")
+                return
+        except KeyError:
+            pass
 
-
-    #TODO create subscription
+    # TODO create subscription
     filename = ""
     if ngsi_type is ngsi_parser.NGSI_Type.Sensor:
-        filename = '../static/json/subscription_sensor.json'
+        filename = 'static/json/subscription_sensor.json'
     elif ngsi_type is ngsi_parser.NGSI_Type.IoTStream:
-        filename = '../static/json/subscription_iotstream.json'
+        filename = 'static/json/subscription_iotstream.json'
     elif ngsi_type is ngsi_parser.NGSI_Type.StreamObservation:
-        filename = '../static/json/subscription_streamobservation.json'
+        filename = 'static/json/subscription_streamobservation.json'
 
     with open(filename) as jFile:
         subscription = json.load(jFile)
-        subscription['id'] = json['id'] + str(uuid.uuid4())
-        #TODO replace callback
+        subscription['id'] = subscription['id'] + str(uuid.uuid4())
+        # TODO replace callback
         subscription['notification']['endpoint']['uri'] = Config.get('semanticenrichment', 'callback')
-        #TODO set entity to subscribe to
+        # TODO set entity to subscribe to
         subscription['entities'][0]['id'] = entityId
         _add_subscription(subscription, sublist)
 
 
-
 def handleNewSensor(sensorId, sensors, observableproperties, subscriptions):
-    print("get sensor")
-    #GET for sensor
+    # GET for sensor
     sensor = get_entity(sensorId)
     if sensor:
         sensors[sensorId] = sensor
 
-        #GET for obsproperty(sensor)
+        # GET for obsproperty(sensor)
         observablepropertyId = ngsi_parser.get_sensor_observes(sensor)
         observableproperty = get_entity(observablepropertyId)
         if observableproperty:
             observableproperties[observablepropertyId] = observableproperty
 
-        #SUB for streamobservation(sensor)
+        # SUB for streamobservation(sensor)
         streamobservationId = ngsi_parser.get_sensor_madeObservation(sensor)
         _subscribe_forTypeId(ngsi_parser.NGSI_Type.StreamObservation, streamobservationId, subscriptions)
 
-        #SUB for sensor
+        # SUB for sensor
         _subscribe_forTypeId(ngsi_parser.NGSI_Type.Sensor, sensorId, subscriptions)
 
 
-
-#for testing purposes
+# for testing purposes
 if __name__ == "__main__":
     pass

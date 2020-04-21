@@ -36,11 +36,11 @@ bp2 = Blueprint('', __name__, static_url_path='', static_folder='static',
 semanticEnrichment = SemanticEnrichment()
 
 
-def formate_datetime(value):
+def format_datetime(value):
     if isinstance(value, float):
         value = datetime.datetime.fromtimestamp(value)
     if value:
-        return value.strftime('%Y-%m-%dT%H:%M:%SZ')
+        return value.strftime('%Y-%m-%d %H:%M:%SZ')  # added space instead of 'T' to enable line break
     return None
 
 
@@ -87,7 +87,6 @@ def changeconfiguration():
 
 @bp.route('/addsubscription', methods=['POST'])
 def addsubscription():
-
     subscription = request.form.get('subscription')
     try:
         semanticEnrichment.add_subscription(json.loads(subscription))
@@ -120,12 +119,19 @@ def showdatasources():
             pass
 
         datasource.stream_id = stream_id
-        datasource.type = ngsi_ld.ngsi_parser.get_stream_observes(stream)
-        # get last StreamObservation for the stream
-        observation = semanticEnrichment.get_observation_for_stream(stream_id)
+
+        # get sensor for stream
+        sensorId = ngsi_ld.ngsi_parser.get_stream_generatedBy(stream)
+        sensor = semanticEnrichment.get_sensor(sensorId)
+
+        # get observation for sensor
+        observationId = ngsi_ld.ngsi_parser.get_sensor_madeObservation(sensor)
+        observation = semanticEnrichment.get_observation(observationId)
+
         datasource.observedat = ngsi_ld.ngsi_parser.get_observation_timestamp(observation)
         datasource.stream = json.dumps(stream, indent=2)
         datasource.qoi = json.dumps(semanticEnrichment.get_qoivector_ngsi(stream_id), indent=2)
+        datasource.sensor = json.dumps(sensor, indent=2)
         datasources.append(datasource)
     return render_template('datasources.html', datasources=datasources)
 
@@ -165,7 +171,7 @@ def callback():
     logger.debug("callback called" + str(data))
     print("callback called" + str(data))
 
-    ngsi_id, ngsi_type = ngsi_ld.ngsi_parser.get_IDandType(data)
+    ngsi_type = ngsi_ld.ngsi_parser.get_type(data)
 
     # TODO check if notification which might contain other entities
     # TODO include threading for every entity to avoid blocking?
@@ -174,24 +180,10 @@ def callback():
     else:
         data = [data]
 
-
     for entity in data:
-        ngsi_id, ngsi_type = ngsi_ld.ngsi_parser.get_IDandType(entity)
-
         # notify about new iotstream, sensor, streamobservation, initialise qoi system if new stream
         semanticEnrichment.notify_datasource(entity)
 
-        # inform about new data
-        if ngsi_type is NGSI_Type.StreamObservation:
-            semanticEnrichment.receive(entity)
-    # split to data and metadata
-    # data, metadata = ngsi_ld.ngsi_parser.parse_ngsi(
-    #     request.get_json())  # TODO check if metadata contains NA values, if so try to find some metadata
-    # print(metadata)
-    # print(data)
-    # # create data source in data source manager
-    # semanticEnrichment.notify_datasource(metadata)
-    # semanticEnrichment.receive(data)
     # TODO change return value
     return "OK"
 
@@ -211,9 +203,8 @@ app = Flask(__name__)
 app.secret_key = 'e3645c25b6d5bf67ae6da68c824e43b530e0cb43b0b9432b'
 app.register_blueprint(bp, url_prefix='/semanticenrichment')
 app.register_blueprint(bp2, url_prefix='/')
-app.jinja_env.filters['datetime'] = formate_datetime
+app.jinja_env.filters['datetime'] = format_datetime
 
 if __name__ == "__main__":
     app.run(host=Config.get('semanticenrichment', 'host'), port=int(Config.get('semanticenrichment', 'port')),
             debug=False)
-
