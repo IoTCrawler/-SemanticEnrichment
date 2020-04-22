@@ -16,7 +16,8 @@ class DatasourceManager:
         self.sensors = {}
         self.observations = {}
         self.observableproperties = {}
-        self.get_active_subscriptions()
+        self.initialise_iotstream_subscription()
+        # self.get_active_subscriptions()
 
         # TODO not used anymore, update for streams without metadata?
         self.matcher = MetadataMatcher()
@@ -75,6 +76,9 @@ class DatasourceManager:
             self.streams[stream_id]['hasQuality']['object'] = qoi_id
         except KeyError:
             pass
+
+    def initialise_iotstream_subscription(self):
+        broker_interface.initialise_iotstream_subscription(self.subscriptions)
 
     def get_active_subscriptions(self):
         broker_interface.get_active_subscriptions(self.subscriptions)

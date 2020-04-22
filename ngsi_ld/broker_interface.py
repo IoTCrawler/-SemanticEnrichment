@@ -20,7 +20,6 @@ def get_active_subscriptions(sublist):
     t = threading.Thread(target=_get_active_subscriptions, args=(sublist,))  # put into thread to not block server
     t.start()
 
-
 def _get_active_subscriptions(subscriptions):
     # get old subscriptions for semantic enrichment (starting with 'SE_')
     host = Config.get('NGSI', 'host')
@@ -38,6 +37,29 @@ def _get_active_subscriptions(subscriptions):
             logger.error("Error getting active subscriptions: " + r.text + str(r.status_code))
     except Exception as e:
         logger.error("Error getting active subscriptions: " + str(e))
+
+def initialise_iotstream_subscription(sublist):
+    t = threading.Thread(target=_initialise_iotstream_subscription, args=(sublist,))  # put into thread to not block server
+    t.start()
+
+def _initialise_iotstream_subscription(subscriptions):
+    # first get active subscriptions
+    _get_active_subscriptions(subscriptions)
+
+    # iterate list anc check for an IotStream subscription, if not found subscribe for IotStream
+    for key, value in subscriptions.items():
+        sub = value.subscription
+        try:
+            if ngsi_parser.get_type(sub['entities'][0]) is ngsi_parser.NGSI_Type.IoTStream:
+                # it is of type IotStream, check if it is our endpoint
+                if sub['endpoint']['uri'] == Config.get('semanticenrichment', 'callback'):
+                    logger.debug("Subscription for IotStream already existing!")
+                    return
+        except KeyError:
+            pass
+
+    logger.debug("Initialise system with subscription for IotStream")
+    _subscribe_forTypeId(ngsi_parser.NGSI_Type.IoTStream, None, subscriptions)
 
 
 def handlejsonsubscription(data, host, port, subscriptions):
@@ -188,18 +210,19 @@ def subscribe_forTypeId(ngsi_type, entityId, sublist):
 
 
 def _subscribe_forTypeId(ngsi_type, entityId, sublist):
-    logger.debug("Subscribe for " + str(ngsi_type) + " " + entityId)
+    logger.debug("Subscribe for " + str(ngsi_type) + " " + str(entityId))
     # check if subscription already in sublist
     # solution is not optimal... but no other option at the moment
-    for key, value in sublist.items():
-        sub = value.subscription
-        try:
-            tmposid = sub['entities'][0]['id']
-            if tmposid == entityId:
-                logger.debug("Subscription for " + tmposid + " already existing!")
-                return
-        except KeyError:
-            pass
+    if entityId:
+        for key, value in sublist.items():
+            sub = value.subscription
+            try:
+                tmposid = sub['entities'][0]['id']
+                if tmposid == entityId:
+                    logger.debug("Subscription for " + tmposid + " already existing!")
+                    return
+            except KeyError:
+                pass
 
     # create subscription
     filename = ""
@@ -216,7 +239,8 @@ def _subscribe_forTypeId(ngsi_type, entityId, sublist):
         # replace callback
         subscription['notification']['endpoint']['uri'] = Config.get('semanticenrichment', 'callback')
         # set entity to subscribe to
-        subscription['entities'][0]['id'] = entityId
+        if entityId:
+            subscription['entities'][0]['id'] = entityId
         _add_subscription(subscription, sublist)
 
 
