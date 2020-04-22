@@ -20,6 +20,7 @@ def get_active_subscriptions(sublist):
     t = threading.Thread(target=_get_active_subscriptions, args=(sublist,))  # put into thread to not block server
     t.start()
 
+
 def _get_active_subscriptions(subscriptions):
     # get old subscriptions for semantic enrichment (starting with 'SE_')
     host = Config.get('NGSI', 'host')
@@ -38,9 +39,12 @@ def _get_active_subscriptions(subscriptions):
     except Exception as e:
         logger.error("Error getting active subscriptions: " + str(e))
 
+
 def initialise_iotstream_subscription(sublist):
-    t = threading.Thread(target=_initialise_iotstream_subscription, args=(sublist,))  # put into thread to not block server
+    t = threading.Thread(target=_initialise_iotstream_subscription,
+                         args=(sublist,))  # put into thread to not block server
     t.start()
+
 
 def _initialise_iotstream_subscription(subscriptions):
     # first get active subscriptions
