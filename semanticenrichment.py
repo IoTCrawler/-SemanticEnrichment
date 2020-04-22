@@ -23,10 +23,6 @@ class SemanticEnrichment:
         # Save data locally, instantiate subscriptions
         self.datasource_manager.update(ngsi_data)
 
-        # TODO initialise a qoi system per value of a stream? per stream, metrics are split to stream or value
-        # store metadata in qoi_system
-        # check if system exists
-
         ngsi_id, ngsi_type = ngsi_parser.get_IDandType(ngsi_data)
 
         # check if type is stream, if yes we have to initialise/update qoi

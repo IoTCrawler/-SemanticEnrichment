@@ -41,7 +41,7 @@ class DatasourceManager:
                     # TODO unsubscribe for old sensor?
                     self.sensors.pop(oldSensorId, None)
 
-                    # reqeuest new sensor (in new tread to avoid blocking) and subscribe to obsproperties and streamobservations
+            # reqeuest new sensor (in new tread to avoid blocking) and subscribe to obsproperties and streamobservations
             broker_interface.handleNewSensor(sensorId, self.sensors, self.observableproperties, self.subscriptions)
 
             # finally just update the stream, metrics will request new metadata from store automatically
@@ -93,3 +93,4 @@ class DatasourceManager:
         if stream_id in self.streams:
             return self.streams[stream_id]
         return None
+

@@ -18,11 +18,6 @@ class QoiSystem:
         self.add_metric(PlausibilityMetric(self))
         self.add_metric(ConcordanceMetric(self))
         self.add_metric(CompletenessMetric(self))
-        # we don't add submetrics anymore
-        # timeliness = TimelinessMetric(self)
-        # timeliness.add_submetric(TimelinessAgeMetric(self))
-        # timeliness.add_submetric(TimelinessFrequencyMetric(self))
-        # self.add_metric(timeliness)
         self.add_metric(TimelinessAgeMetric(self))
         self.add_metric(TimelinessFrequencyMetric(self))
         self.add_metric(ArtificialityMetric(self))
@@ -35,17 +30,26 @@ class QoiSystem:
 
     def start_timer(self):
         # start timer for update interval + 10%
-        stream = self.ds_manager.get_stream(self.streamid)
-        updateinterval, unit = ngsi_parser.get_stream_updateinterval_and_unit(stream)
-        if updateinterval:
-            self.timer = threading.Timer(updateinterval * 1.1, self.timer_update)
-            self.timer.start()
+        sensor = self.get_sensor()
+        if sensor:
+            updateinterval, unit = ngsi_parser.get_sensor_updateinterval_and_unit(sensor)
+            if updateinterval:
+                self.timer = threading.Timer(updateinterval * 1.1, self.timer_update)
+                self.timer.start()
 
     def add_metric(self, metric):
         self.metrics.append(metric)
 
-    def get_stream(self, stream_id):
-        return self.ds_manager.get_stream(stream_id)
+    def get_stream(self):
+        return self.ds_manager.get_stream(self.streamid)
+
+    def get_sensor(self):
+        stream = self.get_stream()
+        if stream:
+            sensor_id = ngsi_parser.get_stream_generatedBy(stream)
+            if sensor_id:
+                return self.ds_manager.get_sensor(sensor_id)
+        return None
 
     def update(self, data):
         self.cancel_timer()
@@ -80,6 +84,5 @@ class QoiSystem:
         for m in self.metrics:
             if m.get_ngsi():
                 qoi_ngsi['qoi:' + m.name] = m.get_ngsi()
-                # qoi_ngsi['@context'][1][m.name] = "https://w3id.org/iot/qoi#" + m.name
 
         return qoi_ngsi

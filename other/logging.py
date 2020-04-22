@@ -11,9 +11,9 @@ class Entry:
 
 class DequeLoggerHandler(logging.Handler):
 
-    def __init__(self, max):
+    def __init__(self, maxlen):
         logging.Handler.__init__(self)
-        self.entries = deque(maxlen=max)
+        self.entries = deque(maxlen=maxlen)
 
     def emit(self, record):
         msg = self.format(record)
@@ -27,6 +27,6 @@ class DequeLoggerHandler(logging.Handler):
         copy.reverse()
         return copy
 
-    def setnrentries(self, max):
+    def setnrentries(self, maxlen):
         tmp = list(self.entries)
-        self.entries = deque(tmp, max)
+        self.entries = deque(tmp, maxlen)

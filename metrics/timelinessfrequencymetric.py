@@ -17,10 +17,10 @@ class TimelinessFrequencyMetric(AbstractMetric):
         if self.lastUpdate == 'NA':
             self.lastUpdate = current
         else:
-            stream_id = self.qoi_system.streamid
-            if stream_id:
-                stream = self.qoisystem.get_stream(stream_id)
-                updateinterval, unit = ngsi_parser.get_stream_updateinterval_and_unit(stream)
+            sensor = self.qoi_system.get_sensor()
+            if sensor:
+
+                updateinterval, unit = ngsi_parser.get_sensor_updateinterval_and_unit(sensor)
                 if updateinterval and unit:
                     if unit in ("s", "seconds"):
                         diff = (current - self.lastUpdate).total_seconds()

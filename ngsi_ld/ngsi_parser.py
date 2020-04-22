@@ -72,45 +72,44 @@ def get_IDandType(ngsi_data):
         return None, None
 
 
-def get_stream_min(stream):
+def get_sensor_min(sensor):
     try:
-        return stream['qoi:min']['value']
+        return sensor['qoi:min']['value']
     except KeyError:
         try:
-            return stream['https://w3id.org/iot/qoi#min']['value']
+            return sensor['https://w3id.org/iot/qoi#min']['value']
         except KeyError:
             return None
 
 
-def get_stream_max(stream):
+def get_sensor_max(sensor):
     try:
-        return stream['qoi:max']['value']
+        return sensor['qoi:max']['value']
     except KeyError:
         try:
-            return stream['https://w3id.org/iot/qoi#max']['value']
+            return sensor['https://w3id.org/iot/qoi#max']['value']
         except KeyError:
             return None
 
 
-def get_stream_valuetype(stream):
+def get_sensor_valuetype(sensor):
     try:
-        return stream['qoi:valuetype']['value']
+        return sensor['qoi:valuetype']['value']
     except KeyError:
         try:
-            return stream['https://w3id.org/iot/qoi#valuetype']['value']
+            return sensor['https://w3id.org/iot/qoi#valuetype']['value']
         except KeyError:
             return None
 
 
-def get_stream_updateinterval_and_unit(stream):
+def get_sensor_updateinterval_and_unit(sensor):
     try:
-        return stream['qoi:updateinterval']['value'], stream['qoi:updateinterval']['qoi:unit']['value']
+        return sensor['qoi:updateinterval']['value'], sensor['qoi:updateinterval']['qoi:unit']['value']
     except KeyError:
         try:
-            return stream['https://w3id.org/iot/qoi#updateinterval']['value'], \
-                   stream['https://w3id.org/iot/qoi#updateinterval']['https://w3id.org/iot/qoi#unit']['value']
+            return sensor['https://w3id.org/iot/qoi#updateinterval']['value'], \
+                   sensor['https://w3id.org/iot/qoi#updateinterval']['https://w3id.org/iot/qoi#unit']['value']
         except KeyError:
-
             return None, None
 
 

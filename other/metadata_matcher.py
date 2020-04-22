@@ -115,24 +115,24 @@ class MetadataMatcher(object):
             return list(self.metadata.find({}, {"_id": False}))
         return None
 
-    def delete(self, type):
+    def delete(self, streamtype):
         if self.connected():
-            self.metadata.delete_many({"type": type})
+            self.metadata.delete_many({"type": streamtype})
 
-    def match(self, type):
+    def match(self, streamtype):
         if self.connected():
             # first get types from db as matching is done locally
-            types = [type for type in self.metadata.distinct('type')]
+            streamtypes = [streamtype for streamtype in self.metadata.distinct('type')]
 
             # do matching, see description here: https://www.datacamp.com/community/tutorials/fuzzy-string-python
             highestScore = 0
             highestType = None
             result = {}
-            for dbtype in types:
-                ratio = fuzz.ratio(dbtype.lower(), type.lower())
-                partial_ratio = fuzz.partial_ratio(dbtype.lower(), type.lower())
-                token_sort_ratio = fuzz.token_sort_ratio(dbtype, type)
-                token_set_ratio = fuzz.token_set_ratio(dbtype, type)
+            for dbtype in streamtypes:
+                ratio = fuzz.ratio(dbtype.lower(), streamtype.lower())
+                partial_ratio = fuzz.partial_ratio(dbtype.lower(), streamtype.lower())
+                token_sort_ratio = fuzz.token_sort_ratio(dbtype, streamtype)
+                token_set_ratio = fuzz.token_set_ratio(dbtype, streamtype)
                 sumRatio = statistics.median([ratio, partial_ratio, token_sort_ratio, token_set_ratio])
                 result[dbtype] = sumRatio
 

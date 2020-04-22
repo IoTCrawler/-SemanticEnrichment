@@ -14,7 +14,7 @@ headers.update({'content-type': 'application/ld+json'})
 headers.update({'accept': 'application/ld+json'})
 
 
-# TODO this method is mainly for testing etc as subscriptions are lost during restart,
+# this method is mainly for testing etc as subscriptions are lost during restart,
 # in addition ngrok won't fit for old subscriptions
 def get_active_subscriptions(sublist):
     t = threading.Thread(target=_get_active_subscriptions, args=(sublist,))  # put into thread to not block server
@@ -189,8 +189,8 @@ def subscribe_forTypeId(ngsi_type, entityId, sublist):
 
 def _subscribe_forTypeId(ngsi_type, entityId, sublist):
     logger.debug("Subscribe for " + str(ngsi_type) + " " + entityId)
-    # TODO check if subscription already in sublist
-    # TODO solution is not optimal... but no other option at the moment
+    # check if subscription already in sublist
+    # solution is not optimal... but no other option at the moment
     for key, value in sublist.items():
         sub = value.subscription
         try:
@@ -201,7 +201,7 @@ def _subscribe_forTypeId(ngsi_type, entityId, sublist):
         except KeyError:
             pass
 
-    # TODO create subscription
+    # create subscription
     filename = ""
     if ngsi_type is ngsi_parser.NGSI_Type.Sensor:
         filename = 'static/json/subscription_sensor.json'
@@ -213,9 +213,9 @@ def _subscribe_forTypeId(ngsi_type, entityId, sublist):
     with open(filename) as jFile:
         subscription = json.load(jFile)
         subscription['id'] = subscription['id'] + str(uuid.uuid4())
-        # TODO replace callback
+        # replace callback
         subscription['notification']['endpoint']['uri'] = Config.get('semanticenrichment', 'callback')
-        # TODO set entity to subscribe to
+        # set entity to subscribe to
         subscription['entities'][0]['id'] = entityId
         _add_subscription(subscription, sublist)
 

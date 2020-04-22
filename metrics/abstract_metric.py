@@ -57,7 +57,7 @@ class AbstractMetric(object):
     def get_ngsi(self):
         ngsi = {
             "type": "Property",
-            "value": "NA",  # TODO value set to NA as it cannot be null
+            "value": "NA",  # value set to NA as it cannot be null in ngsi-ld
         }
         enable_na = Config.get('semanticenrichment', 'enablena')
         if enable_na == "False":
@@ -78,3 +78,6 @@ class AbstractMetric(object):
                 return None
 
         return ngsi
+
+
+

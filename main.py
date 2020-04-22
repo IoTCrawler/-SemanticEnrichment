@@ -3,7 +3,7 @@ import json
 import logging
 import uuid
 
-from flask import Flask, redirect, render_template, url_for, request, Blueprint, flash
+from flask import Flask, redirect, render_template, url_for, request, Blueprint, flash, Response
 
 import ngsi_ld.ngsi_parser
 from configuration import Config
@@ -129,9 +129,9 @@ def showdatasources():
             observationId = ngsi_ld.ngsi_parser.get_sensor_madeObservation(sensor)
             observation = semanticEnrichment.get_observation(observationId)
 
-        if observation:
-            datasource.observedat = ngsi_ld.ngsi_parser.get_observation_timestamp(observation)
-            
+            if observation:
+                datasource.observedat = ngsi_ld.ngsi_parser.get_observation_timestamp(observation)
+
         datasource.stream = json.dumps(stream, indent=2)
         datasource.qoi = json.dumps(semanticEnrichment.get_qoivector_ngsi(stream_id), indent=2)
         datasource.sensor = json.dumps(sensor, indent=2)
@@ -147,11 +147,11 @@ def showmetadata():
 
 @bp.route('/addmetadata', methods=['POST'])
 def addmetadata():
-    type = request.form.get('type')
+    streamtype = request.form.get('type')
     metadata = request.form.get('metadata')
-    if None not in (type, metadata):
+    if None not in (streamtype, metadata):
         try:
-            semanticEnrichment.add_metadata(type, metadata)
+            semanticEnrichment.add_metadata(streamtype, metadata)
         except Exception as e:
             flash('Error while adding metadata:' + str(e))
     else:
@@ -176,8 +176,7 @@ def callback():
 
     ngsi_type = ngsi_ld.ngsi_parser.get_type(data)
 
-    # TODO check if notification which might contain other entities
-    # TODO include threading for every entity to avoid blocking?
+    # check if notification which might contain other entities
     if ngsi_type is NGSI_Type.Notification:
         data = ngsi_ld.ngsi_parser.get_notification_entities(data)
     else:
@@ -187,8 +186,7 @@ def callback():
         # notify about new iotstream, sensor, streamobservation, initialise qoi system if new stream
         semanticEnrichment.notify_datasource(entity)
 
-    # TODO change return value
-    return "OK"
+    return Response('OK', status=200)
 
 
 @bp2.route('/', methods=['GET'])

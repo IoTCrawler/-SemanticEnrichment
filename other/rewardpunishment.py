@@ -10,12 +10,11 @@ class RewardAndPunishment:
         self.buffer = RingBuffer(window)
         self.reward = 1.0
         self.lowest = self.reward
-        for i in range(0, window):
+        for j in range(0, window):
             self.update(True)
         self.started = False
 
     def update(self, truthhold):
-        # TODO bug: plausibility not returning NA?
         # detect if rp was already used
         self.started = True
 
