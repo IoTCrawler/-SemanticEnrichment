@@ -38,37 +38,46 @@ def _get_active_subscriptions(subscriptions):
     except Exception as e:
         logger.error("Error getting active subscriptions: " + str(e))
 
-def initialise_iotstream_subscription(sublist):
-    t = threading.Thread(target=_initialise_iotstream_subscription, args=(sublist,))  # put into thread to not block server
+def handlejsonsubscription(data, host, port, subscriptions):
+    try:
+        if data['notification']['endpoint']['uri'] == Config.get('semanticenrichment', 'callback'):
+        # if data['id'].startswith('SE_', data['id'].rfind(':') + 1):
+            sub = Subscription(data['id'], host, port, data)
+            subscriptions[sub.id] = sub
+            logger.info("Found active subscription: " + str(data))
+        else:
+            logger.info("not our subscription")
+    except KeyError:
+        return None
+
+def initialise_subscriptions(sublist):
+    t = threading.Thread(target=_initialise_subscriptions, args=(sublist,))  # put into thread to not block server
     t.start()
 
-def _initialise_iotstream_subscription(subscriptions):
+def _initialise_subscriptions(subscriptions):
     # first get active subscriptions
     _get_active_subscriptions(subscriptions)
 
-    # iterate list anc check for an IotStream subscription, if not found subscribe for IotStream
-    for key, value in subscriptions.items():
-        sub = value.subscription
-        try:
-            if ngsi_parser.get_type(sub['entities'][0]) is ngsi_parser.NGSI_Type.IoTStream:
-                # it is of type IotStream, check if it is our endpoint
-                if sub['endpoint']['uri'] == Config.get('semanticenrichment', 'callback'):
-                    logger.debug("Subscription for IotStream already existing!")
-                    return
-        except KeyError:
-            pass
+    # iterate list and check for IotStream, StreamObservation, Sensor subscription, if not found subscribe
+    for t in (ngsi_parser.NGSI_Type.IoTStream, ngsi_parser.NGSI_Type.Sensor, ngsi_parser.NGSI_Type.StreamObservation):
+        subscribe = True
+        for key, value in subscriptions.items():
+            sub = value.subscription
+            try:
+                if ngsi_parser.get_type(sub['entities'][0]) is t:
+                    # it is of type IotStream, check if it is our endpoint
+                    if sub['notification']['endpoint']['uri'] == Config.get('semanticenrichment', 'callback'):
+                        logger.debug("Subscription for " + str(t) + " already existing!")
+                        subscribe = False
+                        break
+            except KeyError:
+                pass
+        if subscribe:
+            logger.debug("Initialise system with subscription for " + str(t))
+            _subscribe_forTypeId(t, None, subscriptions)
 
-    logger.debug("Initialise system with subscription for IotStream")
-    _subscribe_forTypeId(ngsi_parser.NGSI_Type.IoTStream, None, subscriptions)
 
 
-def handlejsonsubscription(data, host, port, subscriptions):
-    if data['id'].startswith('SE_', data['id'].rfind(':') + 1):
-        sub = Subscription(data['id'], host, port, data)
-        subscriptions[sub.id] = sub
-        logger.info("Found active subscription: " + str(data))
-    else:
-        logger.info("not our subscription")
 
 
 def add_subscription(subscription, subscriptionlist):
@@ -190,6 +199,31 @@ def get_entity(entitiyid):
     except requests.exceptions.ConnectionError as e:
         logger.error("Error while getting entity " + entitiyid + ": " + str(e))
 
+def get_entities(entitytype, limit, offset):
+    try:
+        url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/"
+        params = {'type': entitytype, 'limit': limit, 'offset': offset}
+        r = requests.get(url, headers=headers, params=params)
+        if r.status_code != 200:
+            logger.error("Error requesting entities of type " + entitytype + ": " + r.text)
+            return None
+        return r.json()
+    except requests.exceptions.ConnectionError as e:
+        logger.error("Error while getting entities of type " + entitytype + ": " + str(e))
+
+def get_all_entities(entitytype):
+    if type(entitytype) is ngsi_parser.NGSI_Type:
+        entitytype = ngsi_parser.get_url(entitytype)
+    limit = 50
+    offset = 0
+    result = []
+    while True:
+        tmpresult = get_entities(entitytype, limit, offset)
+        result.extend(tmpresult)
+        if len(tmpresult) < limit:
+            break
+        offset += 50
+    return result
 
 # def _find_streamobservation(streamid):
 #     try:
@@ -256,14 +290,15 @@ def handleNewSensor(sensorId, sensors, observableproperties, subscriptions):
         if observableproperty:
             observableproperties[observablepropertyId] = observableproperty
 
+        # subscriptions disabled as we subscribe for all sensors and observations
         # SUB for streamobservation(sensor)
-        streamobservationId = ngsi_parser.get_sensor_madeObservation(sensor)
-        _subscribe_forTypeId(ngsi_parser.NGSI_Type.StreamObservation, streamobservationId, subscriptions)
-
+        # streamobservationId = ngsi_parser.get_sensor_madeObservation(sensor)
+        # _subscribe_forTypeId(ngsi_parser.NGSI_Type.StreamObservation, streamobservationId, subscriptions)
         # SUB for sensor
-        _subscribe_forTypeId(ngsi_parser.NGSI_Type.Sensor, sensorId, subscriptions)
+        # _subscribe_forTypeId(ngsi_parser.NGSI_Type.Sensor, sensorId, subscriptions)
 
 
 # for testing purposes
 if __name__ == "__main__":
-    pass
+    print(get_all_entities('http://purl.org/iot/ontology/iot-stream#IotStream'))
+

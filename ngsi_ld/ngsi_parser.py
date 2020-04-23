@@ -27,6 +27,17 @@ def get_type(ngsi_data):
         return NGSI_Type.Notification
 
 
+def get_url(ngsi_type):
+    if ngsi_type == NGSI_Type.IoTStream:
+        return "http://purl.org/iot/ontology/iot-stream#IotStream"
+    elif ngsi_type == NGSI_Type.StreamObservation:
+        return "http://purl.org/iot/ontology/iot-stream#StreamObservation"
+    elif ngsi_type == NGSI_Type.Sensor:
+        return "http://www.w3.org/ns/sosa/Sensor"
+    elif ngsi_type == NGSI_Type.ObservableProperty:
+        return "http://www.w3.org/ns/sosa/ObservableProperty"
+
+
 def get_notification_entities(notification):
     try:
         return notification['data']
@@ -65,9 +76,16 @@ def get_observation_timestamp(observation):
             return None
 
 
+def get_id(ngsi_data):
+    try:
+        return ngsi_data['id']
+    except KeyError:
+        return None, None
+
+
 def get_IDandType(ngsi_data):
     try:
-        return ngsi_data['id'], get_type(ngsi_data)
+        return get_id(ngsi_data), get_type(ngsi_data)
     except KeyError:
         return None, None
 

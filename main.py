@@ -98,9 +98,12 @@ def addsubscription():
 @bp.route('/getsubscriptions', methods=['POST'])
 def getsubscriptions():
     semanticEnrichment.datasource_manager.get_active_subscriptions()
-    logger.info("missing data for adding subscription")
     return redirect(url_for('.showsubscriptions'))
 
+@bp.route('/deleteallsubscriptions', methods=['POST'])
+def deleteallsubscriptions():
+    semanticEnrichment.datasource_manager.del_all_subscriptions()
+    return redirect(url_for('.showsubscriptions'))
 
 @bp.route('/deletesubscription', methods=['POST'])
 def deletesubscription():

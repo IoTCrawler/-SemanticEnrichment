@@ -16,8 +16,6 @@ class DatasourceManager:
         self.sensors = {}
         self.observations = {}
         self.observableproperties = {}
-        self.initialise_iotstream_subscription()
-        # self.get_active_subscriptions()
 
         # TODO not used anymore, update for streams without metadata?
         self.matcher = MetadataMatcher()
@@ -39,7 +37,6 @@ class DatasourceManager:
                 oldSensorId = ngsi_parser.get_stream_generatedBy(oldstream)
                 if sensorId is not oldSensorId:  # observable property has changed
                     # delete old sensor from dict
-                    # TODO unsubscribe for old sensor?
                     self.sensors.pop(oldSensorId, None)
 
             # reqeuest new sensor (in new tread to avoid blocking) and subscribe to obsproperties and streamobservations
@@ -77,8 +74,8 @@ class DatasourceManager:
         except KeyError:
             pass
 
-    def initialise_iotstream_subscription(self):
-        broker_interface.initialise_iotstream_subscription(self.subscriptions)
+    def initialise_subscriptions(self):
+        broker_interface.initialise_subscriptions(self.subscriptions)
 
     def get_active_subscriptions(self):
         broker_interface.get_active_subscriptions(self.subscriptions)
@@ -89,6 +86,10 @@ class DatasourceManager:
     def del_subscription(self, subid):
         subscription = self.subscriptions.pop(subid)
         broker_interface.del_subscription(subscription)
+
+    def del_all_subscriptions(self):
+        for subid in list(self.subscriptions.keys()):
+            self.del_subscription(subid)
 
     def get_subscriptions(self):
         return self.subscriptions

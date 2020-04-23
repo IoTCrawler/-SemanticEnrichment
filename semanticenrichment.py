@@ -1,6 +1,6 @@
 import ast
 import logging
-
+import threading
 from datasource_manager import DatasourceManager
 from ngsi_ld import broker_interface
 from ngsi_ld import ngsi_parser
@@ -15,9 +15,22 @@ class SemanticEnrichment:
     def __init__(self):
         self.qoisystem_map = {}
         self.datasource_manager = DatasourceManager()
-        self.datasource_map = ""
-
+        self.initialise()
         logger.info("Semantic Enrichment started")
+
+    def initialise(self):
+        self.datasource_manager.initialise_subscriptions()
+
+        # get and notify for existing streams in a separate thread as this is blocking
+        t = threading.Thread(target=self.initialise_existing_streams)
+        t.start()
+
+    def initialise_existing_streams(self):
+        streams = broker_interface.get_all_entities(NGSI_Type.IoTStream)
+        logger.debug("There are " + str(len(streams)) + " existing streams")
+        for stream in streams:
+            logger.debug("Notifiy existing stream " + ngsi_parser.get_id(stream))
+            self.notify_datasource(stream)
 
     def notify_datasource(self, ngsi_data):
         # Save data locally, instantiate subscriptions
