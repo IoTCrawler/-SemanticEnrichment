@@ -6,6 +6,7 @@ from metrics.timelinessagemmetric import TimelinessAgeMetric
 from metrics.timelinessfrequencymetric import TimelinessFrequencyMetric
 from metrics.artificiality import ArtificialityMetric
 from metrics.concordancemetric import ConcordanceMetric
+from other.metadata_matcher import MetadataMatcher
 
 
 class QoiSystem:
@@ -33,7 +34,8 @@ class QoiSystem:
         sensor = self.get_sensor()
         if sensor:
             updateinterval, unit = ngsi_parser.get_sensor_updateinterval_and_unit(sensor)
-            if updateinterval:
+            if self.is_number(updateinterval):
+                updateinterval = float(updateinterval)
                 self.timer = threading.Timer(updateinterval * 1.1, self.timer_update)
                 self.timer.start()
 
@@ -86,3 +88,14 @@ class QoiSystem:
                 qoi_ngsi['qoi:' + m.name] = m.get_ngsi()
 
         return qoi_ngsi
+
+    def getStoredMetadata(self, field):
+        return self.ds_manager.getStoredMetadata(self.get_sensor(), field)
+
+    @staticmethod
+    def is_number(s):
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False

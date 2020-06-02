@@ -47,17 +47,17 @@ def get_notification_entities(notification):
 
 def get_observation_stream(observation):
     try:
-        if 'belongsTo' in observation:
-            return observation['belongsTo']['object']
-        elif 'http://purl.org/iot/ontology/iot-stream#belongsTo' in observation:
-            return observation['http://purl.org/iot/ontology/iot-stream#belongsTo']['object']
+        return observation['iot-stream:belongsTo']['object']
     except KeyError:
-        return None
+        try:
+            return observation['http://purl.org/iot/ontology/iot-stream#belongsTo']['object']
+        except KeyError:
+            return None
 
 
 def get_observation_value(observation):
     try:
-        return observation['hasSimpleResult']['value']
+        return observation['sosa:hasSimpleResult']['value']
     except KeyError:
         try:
             return observation['http://www.w3.org/ns/sosa/hasSimpleResult']['value']
@@ -163,9 +163,9 @@ def get_stream_generatedBy(stream):
 
 def get_obsproperty_label(obsproperty):
     try:
-        return obsproperty['rdfs:label']['object']
+        return obsproperty['rdfs:label']['value']
     except KeyError:
         try:
-            return obsproperty['http://www.w3.org/2000/01/rdf-schema#label']['object']
+            return obsproperty['http://www.w3.org/2000/01/rdf-schema#label']['value']
         except KeyError:
             return None

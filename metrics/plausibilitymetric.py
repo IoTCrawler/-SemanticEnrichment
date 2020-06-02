@@ -16,6 +16,8 @@ class PlausibilityMetric(AbstractMetric):
         if sensor:
             # get type
             datatype = ngsi_parser.get_sensor_valuetype(sensor)
+            if not datatype:
+                datatype = self.qoisystem.getStoredMetadata('valuetype')
             if datatype:
                 if datatype != 'NA':
                     if datatype in ['int', 'integer', 'double', 'float']:
@@ -28,8 +30,13 @@ class PlausibilityMetric(AbstractMetric):
     def handle_number(self, value, sensor):
         # add error handling if min/max are not in stream
         minvalue = ngsi_parser.get_sensor_min(sensor)
+        if not minvalue:
+            minvalue = self.qoisystem.getStoredMetadata('min')
         maxvalue = ngsi_parser.get_sensor_max(sensor)
+        if not maxvalue:
+            maxvalue = self.qoisystem.getStoredMetadata('max')
 
+        # TODO split comparison if only min or max existing
         if (minvalue != 'NA') & (maxvalue != 'NA'):
             if minvalue <= value <= maxvalue:
                 self.lastValue = 1

@@ -17,7 +17,6 @@ class DatasourceManager:
         self.observations = {}
         self.observableproperties = {}
 
-        # TODO not used anymore, update for streams without metadata?
         self.matcher = MetadataMatcher()
 
     def update(self, ngsi_data):
@@ -35,7 +34,7 @@ class DatasourceManager:
                 # check if sensorId changed
                 oldstream = self.streams[ngsi_id]
                 oldSensorId = ngsi_parser.get_stream_generatedBy(oldstream)
-                if sensorId is not oldSensorId:  # observable property has changed
+                if sensorId != oldSensorId:  # observable property has changed
                     # delete old sensor from dict
                     self.sensors.pop(oldSensorId, None)
 
@@ -49,6 +48,8 @@ class DatasourceManager:
             self.observations[ngsi_id] = ngsi_data
         elif ngsi_type is NGSI_Type.Sensor:
             self.sensors[ngsi_id] = ngsi_data
+        elif ngsi_type is NGSI_Type.ObservableProperty:
+            self.observableproperties[ngsi_id] = ngsi_data
 
     def get_sensor(self, sensor_id):
         try:
@@ -99,3 +100,19 @@ class DatasourceManager:
             return self.streams[stream_id]
         return None
 
+    def getStoredMetadata(self, sensor, field):
+        #first get observed property, TODO move this to initilisation?
+        # sensor = self.get_sensor()
+        observablePropertyId = ngsi_parser.get_sensor_observes(sensor)
+        observableProperty = self.get_observableproperty(observablePropertyId)
+        observedType = ngsi_parser.get_obsproperty_label(observableProperty)
+
+        if observedType:
+            metadata = self.matcher.match(observedType)
+            if metadata:
+                try:
+                    return metadata['metadata'][field]
+                except KeyError:
+                    print("hier")
+                    return None
+        return None

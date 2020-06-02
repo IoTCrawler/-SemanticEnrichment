@@ -30,7 +30,7 @@
             <th>Metadata</th>
         </tr>
         {% for m in metadata %}
-        <tr><td><form action="deletemetadata" method="POST"><button type="submit" name="mtype" value={{ m.type }}>Delete</button></form></td><td>{{ m.type }}</td><td>{{ m.fields }}</td></tr>
+        <tr><td><form action="deletemetadata" method="POST"><button type="submit" name="mtype" value={{ m.type }}>Delete</button></form></td><td>{{ m.type }}</td><td>{{ m.metadata }}</td></tr>
         {% endfor %}
     </table>
     </p>

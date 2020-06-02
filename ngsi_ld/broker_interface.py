@@ -219,6 +219,8 @@ def get_all_entities(entitytype):
     result = []
     while True:
         tmpresult = get_entities(entitytype, limit, offset)
+        if not tmpresult:
+            break
         result.extend(tmpresult)
         if len(tmpresult) < limit:
             break
@@ -286,9 +288,10 @@ def handleNewSensor(sensorId, sensors, observableproperties, subscriptions):
 
         # GET for obsproperty(sensor)
         observablepropertyId = ngsi_parser.get_sensor_observes(sensor)
-        observableproperty = get_entity(observablepropertyId)
-        if observableproperty:
-            observableproperties[observablepropertyId] = observableproperty
+        if observablepropertyId:
+            observableproperty = get_entity(observablepropertyId)
+            if observableproperty:
+                observableproperties[observablepropertyId] = observableproperty
 
         # subscriptions disabled as we subscribe for all sensors and observations
         # SUB for streamobservation(sensor)

@@ -100,6 +100,9 @@ class SemanticEnrichment:
     def get_observation(self, observation_id):
         return self.datasource_manager.get_observation(observation_id)
 
+    def get_observableproperty(self, obsproperty_id):
+        return self.datasource_manager.get_observableproperty(obsproperty_id)
+
     def get_metadata(self):
         return self.datasource_manager.matcher.get_all()
 
@@ -108,7 +111,7 @@ class SemanticEnrichment:
 
     def add_metadata(self, entitytype, metadata):
         try:
-            tmp = {'type': entitytype, 'fields': ast.literal_eval(metadata)}
+            tmp = {'type': entitytype, 'metadata': ast.literal_eval(metadata)}
             self.datasource_manager.matcher.store(tmp)
         except Exception as e:
             logger.debug("Error while adding metadata: " + str(e))

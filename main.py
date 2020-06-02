@@ -133,7 +133,12 @@ def showdatasources():
             observation = semanticEnrichment.get_observation(observationId)
 
             if observation:
+                datasource.observation = json.dumps(observation, indent=2)
                 datasource.observedat = ngsi_ld.ngsi_parser.get_observation_timestamp(observation)
+
+            obspropertyId = ngsi_ld.ngsi_parser.get_sensor_observes(sensor)
+            obsproperty = semanticEnrichment.get_observableproperty(obspropertyId)
+            datasource.obsproperty = json.dumps(obsproperty, indent=2)
 
         datasource.stream = json.dumps(stream, indent=2)
         datasource.qoi = json.dumps(semanticEnrichment.get_qoivector_ngsi(stream_id), indent=2)
