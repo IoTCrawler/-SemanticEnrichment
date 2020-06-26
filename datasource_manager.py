@@ -103,16 +103,18 @@ class DatasourceManager:
     def getStoredMetadata(self, sensor, field):
         #first get observed property, TODO move this to initilisation?
         # sensor = self.get_sensor()
-        observablePropertyId = ngsi_parser.get_sensor_observes(sensor)
-        observableProperty = self.get_observableproperty(observablePropertyId)
-        observedType = ngsi_parser.get_obsproperty_label(observableProperty)
 
-        if observedType:
-            metadata = self.matcher.match(observedType)
-            if metadata:
-                try:
-                    return metadata['metadata'][field]
-                except KeyError:
-                    print("hier")
-                    return None
+        observablePropertyId = ngsi_parser.get_sensor_observes(sensor)
+        if observablePropertyId:
+            observableProperty = self.get_observableproperty(observablePropertyId)
+            if observableProperty:
+                observedType = ngsi_parser.get_obsproperty_label(observableProperty)
+
+                if observedType:
+                    metadata = self.matcher.match(observedType)
+                    if metadata:
+                        try:
+                            return metadata['metadata'][field]
+                        except KeyError:
+                            return None
         return None

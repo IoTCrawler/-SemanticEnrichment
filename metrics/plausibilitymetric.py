@@ -1,3 +1,4 @@
+import re
 from metrics.abstract_metric import AbstractMetric
 from ngsi_ld import ngsi_parser
 
@@ -11,6 +12,12 @@ class PlausibilityMetric(AbstractMetric):
 
     def update_metric(self, observation):
         value = ngsi_parser.get_observation_value(observation)
+
+        # TODO parse values like 44^^http://www.w3.org/2001/XMLSchema#integer
+        if isinstance(value, str):
+            m = re.search("[-+]?\\d*\\.\\d+|\\d+", value)
+            value = m.group()
+
         # get sensor for accessing metadata
         sensor = self.qoisystem.get_sensor()
         if sensor:
@@ -36,16 +43,27 @@ class PlausibilityMetric(AbstractMetric):
         if not maxvalue:
             maxvalue = self.qoisystem.getStoredMetadata('max')
 
-        # TODO split comparison if only min or max existing
-        if (minvalue != 'NA') & (maxvalue != 'NA'):
-            if minvalue <= value <= maxvalue:
-                self.lastValue = 1
-                self.rp.update(1)
-            else:
+        # check annotated dummy min/max value
+        if ((minvalue == 'NA') & (maxvalue == 'NA') or (not minvalue and not maxvalue)):
+            self.lastValue = 'NA'
+            return
+
+        # check min
+        if (minvalue != 'NA') and (minvalue != None):
+            if value < minvalue:
                 self.lastValue = 0
                 self.rp.update(0)
-        else:
-            self.lastValue = 'NA'
+                return
+
+        # check max
+        if (maxvalue != 'NA') and (maxvalue != None):
+            if value > maxvalue:
+                self.lastValue = 0
+                self.rp.update(0)
+                return
+
+        self.lastValue = 1
+        self.rp.update(1)
 
     @staticmethod
     def is_number(s):

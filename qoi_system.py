@@ -34,10 +34,11 @@ class QoiSystem:
         sensor = self.get_sensor()
         if sensor:
             updateinterval, unit = ngsi_parser.get_sensor_updateinterval_and_unit(sensor)
-            if self.is_number(updateinterval):
-                updateinterval = float(updateinterval)
-                self.timer = threading.Timer(updateinterval * 1.1, self.timer_update)
-                self.timer.start()
+            if updateinterval:
+                if self.is_number(updateinterval):
+                    updateinterval = float(updateinterval)
+                    self.timer = threading.Timer(updateinterval * 1.1, self.timer_update)
+                    self.timer.start()
 
     def add_metric(self, metric):
         self.metrics.append(metric)

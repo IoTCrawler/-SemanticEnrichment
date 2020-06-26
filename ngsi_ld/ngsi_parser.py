@@ -73,6 +73,19 @@ def get_observation_timestamp(observation):
             return dateutil.parser.parse(
                 observation['http://www.w3.org/ns/sosa/hasSimpleResult']['observedAt']).timestamp()
         except (TypeError, KeyError, dateutil.parser.ParserError):
+            # return None
+            #TODO added if sosa:resultTime is used instead of ngsi-ld observedAt
+            return get_observation_resulttime(observation)
+
+
+def get_observation_resulttime(observation):
+    try:
+        return dateutil.parser.parse(observation['sosa:resultTime']['value']).timestamp()
+    except (TypeError, KeyError, dateutil.parser.ParserError):
+        try:
+            return dateutil.parser.parse(
+                observation['http://www.w3.org/ns/sosa/resultTime']['value']).timestamp()
+        except (TypeError, KeyError, dateutil.parser.ParserError):
             return None
 
 
