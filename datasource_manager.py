@@ -1,9 +1,9 @@
 import logging
-
+import json
 from ngsi_ld import broker_interface
 from ngsi_ld import ngsi_parser
 from ngsi_ld.ngsi_parser import NGSI_Type
-from other.metadata_matcher import MetadataMatcher
+from other.metadata_matcher_filebased import MetadataMatcher
 
 logger = logging.getLogger('semanticenrichment')
 
@@ -30,16 +30,20 @@ class DatasourceManager:
             # get sensor id first
             sensorId = ngsi_parser.get_stream_generatedBy(ngsi_data)
 
-            if ngsi_id in self.streams:  # existing stream
-                # check if sensorId changed
-                oldstream = self.streams[ngsi_id]
-                oldSensorId = ngsi_parser.get_stream_generatedBy(oldstream)
-                if sensorId != oldSensorId:  # observable property has changed
-                    # delete old sensor from dict
-                    self.sensors.pop(oldSensorId, None)
+            #check if iotstream contains sensorId, if yes check sensor details
+            if sensorId:
+                if ngsi_id in self.streams:  # existing stream
+                    # check if sensorId changed
+                    oldstream = self.streams[ngsi_id]
+                    oldSensorId = ngsi_parser.get_stream_generatedBy(oldstream)
+                    if sensorId != oldSensorId:  # observable property has changed
+                        # delete old sensor from dict
+                        self.sensors.pop(oldSensorId, None)
 
-            # reqeuest new sensor (in new tread to avoid blocking) and subscribe to obsproperties and streamobservations
-            broker_interface.handleNewSensor(sensorId, self.sensors, self.observableproperties, self.subscriptions)
+                # reqeuest new sensor (in new tread to avoid blocking) and subscribe to obsproperties and streamobservations
+                broker_interface.handleNewSensor(sensorId, self.sensors, self.observableproperties, self.subscriptions)
+            else:
+                logger.error("SensorId for IotStream missing:" + json.dumps(ngsi_data))
 
             # finally just update the stream, metrics will request new metadata from store automatically
             self.streams[ngsi_id] = ngsi_data

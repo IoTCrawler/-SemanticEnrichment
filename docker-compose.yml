@@ -9,9 +9,9 @@ services:
     links:
       - mongodb
    
-  mongodb:
-    container_name: se_mongodb
-    image: mongo:latest
-    ports:
-      - "27017:27017"
+#  mongodb:
+#    container_name: se_mongodb
+#    image: mongo:latest
+#    ports:
+#      - "27017:27017"
 
