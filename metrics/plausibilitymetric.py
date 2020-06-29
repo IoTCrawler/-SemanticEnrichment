@@ -15,7 +15,7 @@ class PlausibilityMetric(AbstractMetric):
 
         # TODO parse values like 44^^http://www.w3.org/2001/XMLSchema#integer
         if isinstance(value, str):
-            m = re.search("[-+]?\\d*\\.\\d+|\\d+", value)
+            m = re.search("[-+]?\\d*\\.?\\d+|\\d+", value)
             value = m.group()
 
         # get sensor for accessing metadata
