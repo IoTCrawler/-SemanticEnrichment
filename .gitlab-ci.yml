@@ -56,7 +56,7 @@ variables:
   ROLLOUT_RESOURCE_TYPE: deployment
 
   DOCKER_TLS_CERTDIR: ""  # https://gitlab.com/gitlab-org/gitlab-runner/issues/4501
-   AUTO_DEVOPS_POSTGRES_CHANNEL: 1
+  AUTO_DEVOPS_POSTGRES_CHANNEL: 1
 
 stages:
   - build
