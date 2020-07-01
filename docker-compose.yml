@@ -6,8 +6,8 @@ services:
     build: .
     ports:
       - "8081:8081"
-    links:
-      - mongodb
+#    links:
+#      - mongodb
    
 #  mongodb:
 #    container_name: se_mongodb
