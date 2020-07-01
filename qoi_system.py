@@ -1,5 +1,5 @@
 import threading
-from ngsi_ld import ngsi_parser
+from ngsi_ld import ngsi_parser, broker_interface
 from metrics.completenessmetric import CompletenessMetric
 from metrics.plausibilitymetric import PlausibilityMetric
 from metrics.timelinessagemmetric import TimelinessAgeMetric
@@ -65,6 +65,7 @@ class QoiSystem:
     def timer_update(self):
         for m in self.metrics:
             m.timer_update_metric()
+        broker_interface.create_ngsi_entity(self.get_qoivector_ngsi())   # save updated qoi to MDR
         self.start_timer()
 
     # iterate through all metrics to get qoi vector

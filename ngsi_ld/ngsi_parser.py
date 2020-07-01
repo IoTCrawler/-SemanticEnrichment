@@ -74,7 +74,7 @@ def get_observation_timestamp(observation):
                 observation['http://www.w3.org/ns/sosa/hasSimpleResult']['observedAt']).timestamp()
         except (TypeError, KeyError, dateutil.parser.ParserError):
             # return None
-            #TODO added if sosa:resultTime is used instead of ngsi-ld observedAt
+            # added if sosa:resultTime is used instead of ngsi-ld observedAt
             return get_observation_resulttime(observation)
 
 
@@ -182,3 +182,22 @@ def get_obsproperty_label(obsproperty):
             return obsproperty['http://www.w3.org/2000/01/rdf-schema#label']['value']
         except KeyError:
             return None
+
+def update_stream_hasQuality(stream, qoiId):
+    if 'hasQuality' in stream:
+        stream['hasQuality']['object'] = qoiId
+    elif 'https://w3id.org/iot/qoi#hasQuality' in stream:
+        stream['https://w3id.org/iot/qoi#hasQuality']['object'] = qoiId
+    else:
+        hasQoi_ngsi = {
+            "qoi:hasQuality": {
+                "type": "Relationship",
+                "object": qoiId
+            },
+            "@context": [
+                "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld", {
+                    "qoi": "https://w3id.org/iot/qoi#"
+                }
+            ]
+        }
+        stream.update(hasQoi_ngsi)

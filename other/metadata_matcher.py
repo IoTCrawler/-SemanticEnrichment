@@ -71,10 +71,10 @@ class MetadataMatcher(object):
 
     def connect(self):
         try:
-            self.client = pymongo.MongoClient(Config.get('mongodb', 'host'), int(Config.get('mongodb', 'port')),
-                                              serverSelectionTimeoutMS=0.5)
-            # self.client = pymongo.MongoClient('localhost', 27017,
+            # self.client = pymongo.MongoClient(Config.get('mongodb', 'host'), int(Config.get('mongodb', 'port')),
             #                                   serverSelectionTimeoutMS=0.5)
+            self.client = pymongo.MongoClient('localhost', 27017,
+                                              serverSelectionTimeoutMS=0.5)
             self.db = self.client['se_db']
             self.metadata = self.db.metadata
             self.metadata.create_index([('type', pymongo.TEXT)])
@@ -92,9 +92,8 @@ class MetadataMatcher(object):
 
     def initialise(self):
         if self.connected():
-            # TODO initialise with example data
-            # if bool(Config.get('mongodb', 'initialise')):
-            self.store(metadata_example)
+            if bool(Config.get('mongodb', 'initialise')):
+                self.store(metadata_example)
         elif self.retries > 0:
             # database not connected yet, try again in 5s
             self.retries -= 1
@@ -207,6 +206,8 @@ if __name__ == "__main__":
     # matcher.delete("iaq")
     # print(matcher.get_all())
     print("TemperatureSensor:", matcher.match("TemperatureSensor"))
+
+    print(matcher.get_all())
     # print(matcher.match("environment"))
     # print(matcher.match("urn:ngsi-ld:TemperatureSensor:30:AE:A4:6E:FC:D0"))
     # print("TemperatureSensor:", matcher.match("TemperatureSensor"))

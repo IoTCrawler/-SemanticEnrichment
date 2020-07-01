@@ -75,7 +75,8 @@ class DatasourceManager:
 
     def link_qoi(self, stream_id, qoi_id):
         try:
-            self.streams[stream_id]['hasQuality']['object'] = qoi_id
+            stream = self.streams[stream_id]
+            ngsi_parser.update_stream_hasQuality(stream, qoi_id)
         except KeyError:
             pass
 

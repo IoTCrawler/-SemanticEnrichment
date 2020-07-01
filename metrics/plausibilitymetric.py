@@ -13,7 +13,7 @@ class PlausibilityMetric(AbstractMetric):
     def update_metric(self, observation):
         value = ngsi_parser.get_observation_value(observation)
 
-        # TODO parse values like 44^^http://www.w3.org/2001/XMLSchema#integer
+        # parse values like 44^^http://www.w3.org/2001/XMLSchema#integer
         if isinstance(value, str):
             m = re.search("[-+]?\\d*\\.?\\d+|\\d+", value)
             value = m.group()

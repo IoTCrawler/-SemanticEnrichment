@@ -96,6 +96,7 @@ class MetadataMatcher(object):
 
     def delete(self, streamtype):
         self.metadata.pop(streamtype)
+        self.store_file()
 
     def match(self, streamtype):
         # first get types from db as matching is done locally

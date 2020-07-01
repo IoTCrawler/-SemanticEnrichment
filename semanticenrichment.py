@@ -42,6 +42,30 @@ class SemanticEnrichment:
         if ngsi_type is NGSI_Type.IoTStream:
             if ngsi_id not in self.qoisystem_map:
                 self.qoisystem_map[ngsi_id] = QoiSystem(ngsi_id, self.datasource_manager)
+
+                qoi_ngsi = self.qoisystem_map[ngsi_id].get_qoivector_ngsi()
+                logger.debug("Formatting qoi data as ngsi-ld: " + str(qoi_ngsi))
+
+                #  relationship to be added to the dataset to link QoI
+                ngsi = {
+                    "qoi:hasQuality": {
+                        "type": "Relationship",
+                        "object": qoi_ngsi['id']
+                    },
+                    "@context": [
+                        "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld", {
+                            "qoi": "https://w3id.org/iot/qoi#"
+                        }
+                    ]
+                }
+                # update locally
+                self.datasource_manager.link_qoi(ngsi_id, qoi_ngsi['id'])
+
+                # save qoi data
+                broker_interface.create_ngsi_entity(qoi_ngsi)
+                # save relationship for qoi data
+                broker_interface.add_ngsi_attribute(ngsi, ngsi_id)
+
         # if incoming data is observation we have to update QoI
         elif ngsi_type is NGSI_Type.StreamObservation:
             self.receive(ngsi_data)
@@ -53,29 +77,12 @@ class SemanticEnrichment:
         try:
             self.qoisystem_map[stream_id].update(observation)
 
-            # save qoi data to MDR
+            # get current qoi data
             qoi_ngsi = self.qoisystem_map[stream_id].get_qoivector_ngsi()
             logger.debug("Formatting qoi data as ngsi-ld: " + str(qoi_ngsi))
 
-            #  relationship to be added to the dataset to link QoI
-            ngsi = {
-                "qoi:hasQuality": {
-                    "type": "Relationship",
-                    "object": qoi_ngsi['id']
-                },
-                "@context": [
-                    "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld", {
-                        "qoi": "https://w3id.org/iot/qoi#"
-                    }
-                ]
-            }
-            # update locally
-            self.datasource_manager.link_qoi(stream_id, qoi_ngsi['id'])
-
             # save qoi data
             broker_interface.create_ngsi_entity(qoi_ngsi)
-            # save relationship for qoi data
-            broker_interface.add_ngsi_attribute(ngsi, stream_id)
         except KeyError:
             logger.error("There is no stream " + str(stream_id) + " found for this observation!")
 
