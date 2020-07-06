@@ -1,12 +1,12 @@
 import threading
-from ngsi_ld import ngsi_parser, broker_interface
+
+from metrics.artificiality import ArtificialityMetric
 from metrics.completenessmetric import CompletenessMetric
+from metrics.concordancemetric import ConcordanceMetric
 from metrics.plausibilitymetric import PlausibilityMetric
 from metrics.timelinessagemmetric import TimelinessAgeMetric
 from metrics.timelinessfrequencymetric import TimelinessFrequencyMetric
-from metrics.artificiality import ArtificialityMetric
-from metrics.concordancemetric import ConcordanceMetric
-from other.metadata_matcher import MetadataMatcher
+from ngsi_ld import ngsi_parser, broker_interface
 
 
 class QoiSystem:
