@@ -9,7 +9,7 @@ metadata_example = [
     {
         'type': 'mac',
         'metadata': {
-            'regexp': '^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$',
+            'regexp': '(?:[0-9a-fA-F]:?){12}',
             'valuetype': 'string'
         }
     },
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     print("TemperatureSensor:", matcher.match("TemperatureSensor"))
     print(matcher.get_all())
     print(
-        "[{'type': 'temperature', 'metadata': {'min': -20, 'max': 50, 'valuetype': 'float'}}, {'type': 'mac', 'metadata': {'regexp': '^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$', 'valuetype': 'string'}}, {'type': 'temperature1', 'fields': {'min': -20, 'max': 50, 'valuetype': 'float'}}, {'type': 'temp', 'fields': {'min': -20, 'max': 50, 'valuetype': 'float'}}, {'type': 'humidity', 'metadata': {'min': 0, 'max': 100, 'valuetype': 'float'}}, {'type': 'iaq', 'metadata': {'min': 0, 'max': 500, 'valuetype': 'int'}}, {'type': 'color', 'metadata': {'enum': ['red', 'blue'], 'valuetype': 'enum'}}]")
+        "[{'type': 'temperature', 'metadata': {'min': -20, 'max': 50, 'valuetype': 'float'}}, {'type': 'mac', 'metadata': {'regexp': '(?:[0-9a-fA-F]:?){12}', 'valuetype': 'string'}}, {'type': 'temperature1', 'fields': {'min': -20, 'max': 50, 'valuetype': 'float'}}, {'type': 'temp', 'fields': {'min': -20, 'max': 50, 'valuetype': 'float'}}, {'type': 'humidity', 'metadata': {'min': 0, 'max': 100, 'valuetype': 'float'}}, {'type': 'iaq', 'metadata': {'min': 0, 'max': 500, 'valuetype': 'int'}}, {'type': 'color', 'metadata': {'enum': ['red', 'blue'], 'valuetype': 'enum'}}]")
 
 # while(not matcher.connected_to_db):
 #     pass

@@ -122,6 +122,14 @@ def get_sensor_max(sensor):
         except KeyError:
             return None
 
+def get_sensor_regexp(sensor):
+    try:
+        return sensor['qoi:regexp']['value']
+    except KeyError:
+        try:
+            return sensor['https://w3id.org/iot/qoi#regexp']['value']
+        except KeyError:
+            return None
 
 def get_sensor_valuetype(sensor):
     try:
