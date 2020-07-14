@@ -1,6 +1,5 @@
 class Subscription:
-    def __init__(self, subid, host, port, subscription):
+    def __init__(self, subid, address, subscription):
         self.id = subid
-        self.host = host
-        self.port = port
+        self.address = address
         self.subscription = subscription

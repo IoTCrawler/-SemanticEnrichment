@@ -19,9 +19,8 @@ class DatasourceManager:
 
         self.matcher = MetadataMatcher()
 
-    def update(self, ngsi_data):
+    def update(self, ngsi_type, ngsi_id, ngsi_data):
         # check type
-        ngsi_id, ngsi_type = ngsi_parser.get_IDandType(ngsi_data)
         if ngsi_type is NGSI_Type.IoTStream:
             # stream comes in if it is a new stream or stream has been updated
             # Existing Stream: we have to check what is different... => we only have to check if there are new relations, new metadata will just be updated

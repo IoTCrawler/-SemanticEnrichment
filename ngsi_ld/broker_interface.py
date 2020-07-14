@@ -20,29 +20,29 @@ def get_active_subscriptions(sublist):
     t = threading.Thread(target=_get_active_subscriptions, args=(sublist,))  # put into thread to not block server
     t.start()
 
+
 def _get_active_subscriptions(subscriptions):
     # get old subscriptions for semantic enrichment (starting with 'SE_')
-    host = Config.get('NGSI', 'host')
-    port = Config.get('NGSI', 'port')
-    server_url = "http://" + host + ":" + port + "/ngsi-ld/v1/subscriptions/"
+    server_url = "http://" + Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/subscriptions/"
     try:
         r = requests.get(server_url, headers=headers)
         if r.status_code == 200:
             if isinstance(r.json(), list):
                 for data in r.json():
-                    handlejsonsubscription(data, host, port, subscriptions)
+                    handlejsonsubscription(data, Config.getEnvironmentVariable('NGSI_ADDRESS'), subscriptions)
             if isinstance(r.json(), dict):
-                handlejsonsubscription(r.json(), host, port, subscriptions)
+                handlejsonsubscription(r.json(), Config.getEnvironmentVariable('NGSI_ADDRESS'), subscriptions)
         else:
             logger.error("Error getting active subscriptions: " + r.text + str(r.status_code))
     except Exception as e:
         logger.error("Error getting active subscriptions: " + str(e))
 
-def handlejsonsubscription(data, host, port, subscriptions):
+
+def handlejsonsubscription(data, address, subscriptions):
     try:
-        if data['notification']['endpoint']['uri'] == Config.get('semanticenrichment', 'callback'):
-        # if data['id'].startswith('SE_', data['id'].rfind(':') + 1):
-            sub = Subscription(data['id'], host, port, data)
+        if data['notification']['endpoint']['uri'] == Config.getEnvironmentVariable('SE_CALLBACK'):
+            # if data['id'].startswith('SE_', data['id'].rfind(':') + 1):
+            sub = Subscription(data['id'], address, data)
             subscriptions[sub.id] = sub
             logger.info("Found active subscription: " + str(data))
         else:
@@ -50,9 +50,11 @@ def handlejsonsubscription(data, host, port, subscriptions):
     except KeyError:
         return None
 
+
 def initialise_subscriptions(sublist):
     t = threading.Thread(target=_initialise_subscriptions, args=(sublist,))  # put into thread to not block server
     t.start()
+
 
 def _initialise_subscriptions(subscriptions):
     # first get active subscriptions
@@ -66,7 +68,7 @@ def _initialise_subscriptions(subscriptions):
             try:
                 if ngsi_parser.get_type(sub['entities'][0]) is t:
                     # it is of type IotStream, check if it is our endpoint
-                    if sub['notification']['endpoint']['uri'] == Config.get('semanticenrichment', 'callback'):
+                    if sub['notification']['endpoint']['uri'] == Config.getEnvironmentVariable('SE_CALLBACK'):
                         logger.debug("Subscription for " + str(t) + " already existing!")
                         subscribe = False
                         break
@@ -77,29 +79,21 @@ def _initialise_subscriptions(subscriptions):
             _subscribe_forTypeId(t, None, subscriptions)
 
 
-
-
-
 def add_subscription(subscription, subscriptionlist):
     t = threading.Thread(target=_add_subscription, args=(subscription, subscriptionlist))
     t.start()
 
 
 def _add_subscription(subscription, subscriptions):
-    host = Config.get('NGSI', 'host')
-    port = Config.get('NGSI', 'port')
     # subscribe to ngsi-ld endpoint
-    sub = Subscription(subscription['id'], host, port, subscription)
+    sub = Subscription(subscription['id'], Config.getEnvironmentVariable('NGSI_ADDRESS'), subscription)
 
     if ngsi_add_subscription(subscription) is not None:
         subscriptions[sub.id] = sub
 
 
 def ngsi_add_subscription(subscription):
-    host = Config.get('NGSI', 'host')
-    port = Config.get('NGSI', 'port')
-
-    server_url = "http://" + host + ":" + str(port) + "/ngsi-ld/v1/subscriptions/"
+    server_url = "http://" + Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/subscriptions/"
     r = requests.post(server_url, json=subscription, headers=headers)
     logger.info("Adding subscription: " + str(r.status_code) + " " + r.text)
     if r.status_code != 201:
@@ -114,13 +108,14 @@ def del_subscription(subscription):
 
 
 def _del_subscription(subscription):
-    server_url = "http://" + subscription.host + ":" + str(subscription.port) + "/ngsi-ld/v1/subscriptions/"
+    server_url = "http://" + subscription.address + "/ngsi-ld/v1/subscriptions/"
     server_url = server_url + subscription.id
     r = requests.delete(server_url, headers=headers)
     logger.debug("deleting subscription " + subscription.id + ": " + r.text)
 
 
 def add_ngsi_attribute(ngsi_msg, eid):
+    # return #TODO remove
     t = threading.Thread(target=_add_ngsi_attribute, args=(ngsi_msg, eid,))
     t.start()
 
@@ -128,8 +123,7 @@ def add_ngsi_attribute(ngsi_msg, eid):
 def _add_ngsi_attribute(ngsi_msg, eid):
     try:
         logger.debug("Add ngsi attribute to entity " + eid + ":" + str(ngsi_msg))
-        url = "http://" + Config.get('NGSI', 'host') + ":" + str(
-            Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + eid + "/attrs/"
+        url = "http://" + Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/" + eid + "/attrs/"
         r = requests.post(url, json=ngsi_msg, headers=headers)
         if r.status_code != 204:
             logger.debug("Attribute exists, patch it")
@@ -139,6 +133,7 @@ def _add_ngsi_attribute(ngsi_msg, eid):
 
 
 def create_ngsi_entity(ngsi_msg):
+    # return #TODO remove
     t = threading.Thread(target=_create_ngsi_entity, args=(ngsi_msg,))
     t.start()
 
@@ -146,15 +141,14 @@ def create_ngsi_entity(ngsi_msg):
 def _create_ngsi_entity(ngsi_msg):
     try:
         logger.debug("Save entity to ngsi broker: " + str(ngsi_msg))
-        url = "http://" + Config.get('NGSI', 'host') + ":" + str(
-            Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/"
+        url = "http://" + Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/"
         # print(url)
         r = requests.post(url, json=ngsi_msg, headers=headers)
         if r.status_code == 409:
             logger.debug("Entity exists, patch it")
             _patch_ngsi_entity(ngsi_msg)
     except requests.exceptions.ConnectionError as e:
-        logger.error("Error while creating ngsi entity" + str(e))
+        logger.error("Error while creating ngsi entity" + str(e)) #TODO comment in
 
 
 def patch_ngsi_entity(ngsi_msg):
@@ -168,8 +162,8 @@ def _patch_ngsi_entity(ngsi_msg):
         ngsi_msg_patch = dict(ngsi_msg)
         ngsi_msg_patch.pop('id')
         ngsi_msg_patch.pop('type', None)
-        url = "http://" + Config.get('NGSI', 'host') + ":" + str(
-            Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + ngsi_msg['id'] + "/attrs"
+        url = "http://" + Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/" + ngsi_msg[
+            'id'] + "/attrs"
         r = requests.patch(url, json=ngsi_msg_patch, headers=headers)
         logger.debug("Entity patched: " + str(r.status_code))
     except requests.exceptions.ConnectionError as e:
@@ -189,8 +183,7 @@ def _get_entity_updateList(entityid, entitylist):
 
 def get_entity(entitiyid):
     try:
-        url = "http://" + Config.get('NGSI', 'host') + ":" + str(
-            Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/" + entitiyid
+        url = "http://" + Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/" + entitiyid
         r = requests.get(url, headers=headers)
         if r.status_code != 200:
             logger.error("Error requesting entity " + entitiyid + ": " + r.text)
@@ -199,9 +192,10 @@ def get_entity(entitiyid):
     except requests.exceptions.ConnectionError as e:
         logger.error("Error while getting entity " + entitiyid + ": " + str(e))
 
+
 def get_entities(entitytype, limit, offset):
     try:
-        url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/"
+        url = "http://" + Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/"
         params = {'type': entitytype, 'limit': limit, 'offset': offset}
         r = requests.get(url, headers=headers, params=params)
         if r.status_code != 200:
@@ -210,6 +204,7 @@ def get_entities(entitytype, limit, offset):
         return r.json()
     except requests.exceptions.ConnectionError as e:
         logger.error("Error while getting entities of type " + entitytype + ": " + str(e))
+
 
 def get_all_entities(entitytype):
     if type(entitytype) is ngsi_parser.NGSI_Type:
@@ -226,6 +221,7 @@ def get_all_entities(entitytype):
             break
         offset += 50
     return result
+
 
 # def _find_streamobservation(streamid):
 #     try:
@@ -273,7 +269,7 @@ def _subscribe_forTypeId(ngsi_type, entityId, sublist):
         subscription = json.load(jFile)
         subscription['id'] = subscription['id'] + str(uuid.uuid4())
         # replace callback
-        subscription['notification']['endpoint']['uri'] = Config.get('semanticenrichment', 'callback')
+        subscription['notification']['endpoint']['uri'] = Config.getEnvironmentVariable('SE_CALLBACK')
         # set entity to subscribe to
         if entityId:
             subscription['entities'][0]['id'] = entityId
@@ -304,4 +300,3 @@ def handleNewSensor(sensorId, sensors, observableproperties, subscriptions):
 # for testing purposes
 if __name__ == "__main__":
     print(get_all_entities('http://purl.org/iot/ontology/iot-stream#IotStream'))
-

@@ -15,7 +15,7 @@ class SemanticEnrichment:
     def __init__(self):
         self.qoisystem_map = {}
         self.datasource_manager = DatasourceManager()
-        self.initialise()
+        self.initialise() #TODO enable!
         logger.info("Semantic Enrichment started")
 
     def initialise(self):
@@ -33,10 +33,9 @@ class SemanticEnrichment:
             self.notify_datasource(stream)
 
     def notify_datasource(self, ngsi_data):
-        # Save data locally, instantiate subscriptions
-        self.datasource_manager.update(ngsi_data)
-
         ngsi_id, ngsi_type = ngsi_parser.get_IDandType(ngsi_data)
+        # Save data locally, instantiate subscriptions
+        self.datasource_manager.update(ngsi_type, ngsi_id, ngsi_data)
 
         # check if type is stream, if yes we have to initialise/update qoi
         if ngsi_type is NGSI_Type.IoTStream:

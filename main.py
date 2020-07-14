@@ -65,7 +65,7 @@ def showlog():
 
 @bp.route('/configuration', methods=['GET'])
 def showconfiguration():
-    return render_template('configuration.html', configuration=Config.getAllOptions())
+    return render_template('configuration.html', env=Config.getEnvironmentVariables(), configuration=Config.getAllOptions())
 
 
 @bp.route('/changeconfiguration', methods=['POST'])
@@ -215,5 +215,5 @@ app.register_blueprint(bp2, url_prefix='/')
 app.jinja_env.filters['datetime'] = format_datetime
 
 if __name__ == "__main__":
-    app.run(host=Config.get('semanticenrichment', 'host'), port=int(Config.get('semanticenrichment', 'port')),
+    app.run(host=Config.getEnvironmentVariable('SE_HOST'), port=int(Config.getEnvironmentVariable('SE_PORT')),
             debug=False)
