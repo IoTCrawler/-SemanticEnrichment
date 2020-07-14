@@ -61,7 +61,7 @@ variables:
   NGSI_ADDRESS: scorpio.scorpiobroker-46-production:9090
   SE_HOST: 0.0.0.0
   SE_PORT: 8081
-  SE_CALLBACK: http://production-auto-deploy.semanticenrichment-14-production:8081/
+  SE_CALLBACK: http://production-auto-deploy.semanticenrichment-14-production:8081/_fromgitlabfile
 
 
 stages:
