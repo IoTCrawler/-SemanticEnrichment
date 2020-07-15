@@ -1,0 +1,36 @@
+{{ if .Values.ingress.enabled}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  labels:
+    app: {{ template "appname" . }}
+    track: "{{ .Values.application.track }}"
+    tier: "{{ .Values.application.tier }}"
+    release: {{ .Release.Name }}
+    service: {{ .Values.semantic.service.name }}
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+  name: {{ .Values.semantic.service.name }}
+spec:
+  tls:
+  - hosts:
+    {{ if eq .Values.gitlab.env "staging" }}
+    - staging.semantic-enrichment.iotcrawler.eu
+    {{ else }}
+    - semantic-enrichment.iotcrawler.eu
+    {{ end }}
+    secretName: semantic-enrichment-{{ .Values.gitlab.env }}-tls
+  rules:
+  {{ if eq .Values.gitlab.env "staging" }}
+  - host: staging.semantic-enrichment.iotcrawler.eu
+    {{ else }}
+  - host: semantic-enrichment.iotcrawler.eu
+  {{ end }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ .Values.semantic.service.name }}
+          servicePort: {{ .Values.semantic.service.internalPort }}
+{{end}}

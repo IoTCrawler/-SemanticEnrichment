@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ template "appname" . }}
+    track: "{{ .Values.application.track }}"
+    tier: "{{ .Values.application.tier }}"
+    release: {{ .Release.Name }}
+    service: {{ .Values.semantic.service.name }}
+  name: {{ .Values.semantic.service.name }}
+spec:
+  type: {{ .Values.semantic.service.type }}
+  ports:
+  - port: {{ .Values.semantic.service.externalPort }}
+    targetPort: {{ .Values.semantic.service.internalPort }}
+    protocol: TCP
+    name: {{ .Values.semantic.service.name }}
+  selector:
+    app: {{ template "appname" . }}
+    track: "{{ .Values.application.track }}"
+    tier: "{{ .Values.application.tier }}"
+    release: {{ .Release.Name }}
+    service: {{ .Values.semantic.service.name }}
+status:
+  loadBalancer: {}

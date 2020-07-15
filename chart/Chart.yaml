@@ -1,0 +1,4 @@
+apiVersion: v1
+description: Semantic Enrichment Helm Chart
+name: semantic-enrichment
+version: 0.0.1
