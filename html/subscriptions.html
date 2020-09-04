@@ -60,7 +60,7 @@
         <tbody>
         {% for sub in subscriptions %}
             <tr><td><form action="deletesubscription" method="POST"><button type="submit" name="subid" value={{ sub.id }}>Delete</button></form>
-            </td><td>{{ sub.id }}</td><td>{{ sub.host }}</td><td>{{ sub.subscription }}</td></tr>
+            </td><td>{{ sub.id }}</td><td>{{ sub.address }}</td><td>{{ sub.subscription }}</td></tr>
         {% endfor %}
         </tbody>
     </table>

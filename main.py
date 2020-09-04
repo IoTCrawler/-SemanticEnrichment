@@ -54,7 +54,7 @@ def index():
 def showsubscriptions():
     subscriptions = semanticEnrichment.get_subscriptions()
     return render_template('subscriptions.html', subscriptions=subscriptions.values(), id=str(uuid.uuid4()),
-                           endpoint=Config.get('semanticenrichment', 'callback'))
+                           endpoint=Config.getEnvironmentVariable('SE_CALLBACK'))
 
 
 @bp.route('/log', methods=['GET'])
