@@ -43,11 +43,11 @@ class RewardAndPunishment:
             return 0
         elif abs(self.reward) > 1:
             return 1
-        return abs(self.reward)  # * 2 - 1
+        return round(abs(self.reward), 2)  # * 2 - 1
 
 
 if __name__ == "__main__":
-    rp = RewardAndPunishment(7)
+    rp = RewardAndPunishment(5)
     print(rp.value())
     rp.update(0)
     print(rp.value())
@@ -57,5 +57,6 @@ if __name__ == "__main__":
         print(rp.value())
 
     for i in range(0, 9):
-        rp.update(1)
+        rp.update(0)
         print(rp.value())
+
