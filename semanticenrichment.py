@@ -67,7 +67,9 @@ class SemanticEnrichment:
 
         # if incoming data is observation we have to update QoI
         elif ngsi_type is NGSI_Type.StreamObservation:
-            self.receive(ngsi_data)
+            #TODO check if observation has imputed flag, if yes discard it
+            if not ngsi_parser.is_imputedObservation(ngsi_data):
+                self.receive(ngsi_data)
 
     def receive(self, observation):
         # get stream id from observation

@@ -88,6 +88,8 @@ def get_observation_resulttime(observation):
         except (TypeError, KeyError, dateutil.parser.ParserError):
             return None
 
+def is_imputedObservation(observation):
+    return 'http://www.fault-detection.de/hasImputedResult' in observation
 
 def get_id(ngsi_data):
     try:
