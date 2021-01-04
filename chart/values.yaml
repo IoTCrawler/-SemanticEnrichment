@@ -6,7 +6,7 @@ strategyType:
 enableSelector:
 deploymentApiVersion: apps/v1
 semantic:
-  name: pap-pdp
+  name: semantic
   image:
     repository: gitlab.iotcrawler.net:4567/semantic-enrichment/semanticenrichment/master
     tag: latest
