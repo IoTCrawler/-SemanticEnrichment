@@ -23,7 +23,7 @@ def get_active_subscriptions(sublist):
 
 def _get_active_subscriptions(subscriptions):
     # get old subscriptions for semantic enrichment (starting with 'SE_')
-    server_url = "http://" + Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/subscriptions/"
+    server_url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/subscriptions/"
     try:
         r = requests.get(server_url, headers=headers)
         if r.status_code == 200:
@@ -93,7 +93,7 @@ def _add_subscription(subscription, subscriptions):
 
 
 def ngsi_add_subscription(subscription):
-    server_url = "http://" + Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/subscriptions/"
+    server_url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/subscriptions/"
     r = requests.post(server_url, json=subscription, headers=headers)
     logger.info("Adding subscription: " + str(r.status_code) + " " + r.text)
     if r.status_code != 201:
@@ -108,14 +108,13 @@ def del_subscription(subscription):
 
 
 def _del_subscription(subscription):
-    server_url = "http://" + subscription.address + "/ngsi-ld/v1/subscriptions/"
+    server_url = subscription.address + "/ngsi-ld/v1/subscriptions/"
     server_url = server_url + subscription.id
     r = requests.delete(server_url, headers=headers)
     logger.debug("deleting subscription " + subscription.id + ": " + r.text)
 
 
 def add_ngsi_attribute(ngsi_msg, eid):
-    # return #TODO remove
     t = threading.Thread(target=_add_ngsi_attribute, args=(ngsi_msg, eid,))
     t.start()
 
@@ -123,9 +122,9 @@ def add_ngsi_attribute(ngsi_msg, eid):
 def _add_ngsi_attribute(ngsi_msg, eid):
     try:
         logger.debug("Add ngsi attribute to entity " + eid + ":" + str(ngsi_msg))
-        url = "http://" + Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/" + eid + "/attrs/"
+        url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/" + eid + "/attrs"
         r = requests.post(url, json=ngsi_msg, headers=headers)
-        if r.status_code != 204:
+        if r.status_code not in (204, 207):
             logger.debug("Attribute exists, patch it")
             requests.patch(url, json=ngsi_msg, headers=headers)
     except requests.exceptions.ConnectionError as e:
@@ -133,7 +132,6 @@ def _add_ngsi_attribute(ngsi_msg, eid):
 
 
 def create_ngsi_entity(ngsi_msg):
-    # return #TODO remove
     t = threading.Thread(target=_create_ngsi_entity, args=(ngsi_msg,))
     t.start()
 
@@ -141,33 +139,29 @@ def create_ngsi_entity(ngsi_msg):
 def _create_ngsi_entity(ngsi_msg):
     try:
         logger.debug("Save entity to ngsi broker: " + str(ngsi_msg))
-        url = "http://" + Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/"
-        # print(url)
+        url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/"
         r = requests.post(url, json=ngsi_msg, headers=headers)
         if r.status_code == 409:
-            logger.debug("Entity exists, patch it")
-            _patch_ngsi_entity(ngsi_msg)
+            logger.debug("Entity exists, try to update/add attributes")
+            _add_ngsi_attribute(ngsi_msg, ngsi_msg['id'])
     except requests.exceptions.ConnectionError as e:
-        logger.error("Error while creating ngsi entity" + str(e)) #TODO comment in
+        logger.error("Error while creating ngsi entity" + str(e))
 
 
-def patch_ngsi_entity(ngsi_msg):
-    t = threading.Thread(target=_patch_ngsi_entity, args=(ngsi_msg,))
-    t.start()
+# def patch_ngsi_entity(ngsi_msg):
+#     t = threading.Thread(target=_patch_ngsi_entity, args=(ngsi_msg,))
+#     t.start()
 
 
-def _patch_ngsi_entity(ngsi_msg):
-    try:
-        # for updating entity we have to delete id and type, first do copy if needed somewhere else
-        ngsi_msg_patch = dict(ngsi_msg)
-        ngsi_msg_patch.pop('id')
-        ngsi_msg_patch.pop('type', None)
-        url = "http://" + Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/" + ngsi_msg[
-            'id'] + "/attrs"
-        r = requests.patch(url, json=ngsi_msg_patch, headers=headers)
-        logger.debug("Entity patched: " + str(r.status_code))
-    except requests.exceptions.ConnectionError as e:
-        logger.error("Error while patching ngsi entity" + str(e))
+# def _patch_ngsi_entity(ngsi_msg):
+#     try:
+#         url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/" + ngsi_msg[
+#             'id'] + "/attrs"
+#         r = requests.patch(url, json=ngsi_msg, headers=headers)
+#         print("hier", r)
+#         logger.debug("Entity patched: " + str(r.status_code))
+#     except requests.exceptions.ConnectionError as e:
+#         logger.error("Error while patching ngsi entity" + str(e))
 
 
 def get_entity_updateList(entityid, entitylist):
@@ -183,7 +177,7 @@ def _get_entity_updateList(entityid, entitylist):
 
 def get_entity(entitiyid):
     try:
-        url = "http://" + Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/" + entitiyid
+        url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/" + entitiyid
         r = requests.get(url, headers=headers)
         if r.status_code != 200:
             logger.error("Error requesting entity " + entitiyid + ": " + r.text)
@@ -195,7 +189,7 @@ def get_entity(entitiyid):
 
 def get_entities(entitytype, limit, offset):
     try:
-        url = "http://" + Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/"
+        url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/"
         params = {'type': entitytype, 'limit': limit, 'offset': offset}
         r = requests.get(url, headers=headers, params=params)
         if r.status_code != 200:
@@ -225,7 +219,7 @@ def get_all_entities(entitytype):
 
 # def _find_streamobservation(streamid):
 #     try:
-#         url = "http://" + Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/"
+#         url = Config.get('NGSI', 'host') + ":" + str(Config.get('NGSI', 'port')) + "/ngsi-ld/v1/entities/"
 #         params = {'type': 'http://www.w3.org/ns/sosa/Sensor/ObservableProperty', 'q': 'http://www.w3.org/ns/sosa/Sensor/isObservedBy==' + streamid}
 #         r = requests.get(url, headers=headers, params=params)
 #         if r.status_code != 200:
@@ -299,4 +293,100 @@ def handleNewSensor(sensorId, sensors, observableproperties, subscriptions):
 
 # for testing purposes
 if __name__ == "__main__":
-    print(get_all_entities('http://purl.org/iot/ontology/iot-stream#IotStream'))
+    # print(get_all_entities('http://purl.org/iot/ontology/iot-stream#IotStream'))
+    #
+    # id = "urn:ngsi-ld:Sensor:B4:E6:2D:8A:20:DD:Temperature"
+    # ngsi = {"http://www.fault-detection.de/hasImputedResult": {"type": "Property", "value": 24, "observedAt": "2020-10-20T06:42:42Z"}}
+    #
+    # ngsi = {
+    #     "fd:hasImputedResult": {
+    #         "type": "Property",
+    #         "value": 24,
+    #         "observedAt": "2020-10-20T06:42:42Z"
+    #     },
+    #     "@context": [
+    #         "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld", {
+    #             "fd": "http://www.fault-detection.de/"
+    #         }
+    #     ]
+    # }
+    #
+    # add_ngsi_attribute(ngsi, id)
+    import os
+    os.environ["NGSI_ADDRESS"] = "https://staging.urban-data-mission.mdr.iotcrawler.eu"
+
+    test_qoi = {
+        "id": "urn:ngsi-ld:QoI:test5",
+        "type": "qoi:Quality",
+        "test": {
+            "type": "Property",
+            "value": "bla",
+        },
+        "@context": [
+            "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld", {
+                "qoi": "https://w3id.org/iot/qoi#",
+            }
+        ]
+    }
+
+    print(type(test_qoi))
+    # create_ngsi_entity(test_qoi)
+
+    test_qoi_complete = {
+                    "id": "urn:ngsi-ld:QoI:test6",
+                    "type": "qoi:Quality",
+                    "test": {
+                        "type": "Property",
+                        "value": "bla4",
+                    },
+                    "@context": [
+                        "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",
+                        {
+                            "qoi": "https://w3id.org/iot/qoi#"
+                        }
+                    ],
+                    "qoi:plausibility": {
+                        "type": "Property", "value": "NA",
+                        "qoi:hasAbsoluteValue": {
+                            "type": "Property", "value": 1
+                        },
+                        "qoi:hasRatedValue": {
+                            "type": "Property", "value": 1.0
+                        }
+                    },
+                    "qoi:completeness": {
+                        "type": "Property",
+                        "value": "NA",
+                        "qoi:hasAbsoluteValue": {
+                            "type": "Property", "value": 0
+                        },
+                        "qoi:hasRatedValue": {
+                            "type": "Property", "value": 1.0
+                        }
+                    },
+                    "qoi:age": {
+                        "type": "Property",
+                        "value": "NA",
+                        "qoi:hasAbsoluteValue": {
+                            "type": "Property",
+                            "value": 122.907668
+                        }
+                    },
+                    "qoi:frequency": {
+                        "type": "Property",
+                        "value": "NA",
+                        "qoi:hasAbsoluteValue": {
+                            "type": "Property",
+                            "value": 118.558193
+                        },
+                        "qoi:hasRatedValue": {
+                            "type": "Property",
+                            "value": 0.7
+                        }
+                    }
+                }
+
+    # patch_ngsi_entity(test_qoi_complete)
+    print(type(test_qoi_complete))
+    # add_ngsi_attribute(test_qoi_complete, "urn:ngsi-ld:QoI:test6")
+    create_ngsi_entity(test_qoi_complete)

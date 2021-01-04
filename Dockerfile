@@ -11,7 +11,7 @@ COPY other /other
 ENV PORT 8081
 EXPOSE $PORT
 
-ENV NGSI_ADDRESS 155.54.95.248:9090
+ENV NGSI_ADDRESS http://155.54.95.248:9090
 ENV SE_HOST 0.0.0.0
 ENV SE_PORT 8081
 ENV SE_CALLBACK https://mobcom.ecs.hs-osnabrueck.de/semanticenrichment/callback
