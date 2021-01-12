@@ -24,6 +24,7 @@ def get_active_subscriptions(sublist):
 def _get_active_subscriptions(subscriptions):
     # get old subscriptions for semantic enrichment (starting with 'SE_')
     server_url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/subscriptions/"
+    logger.debug("Get active subscriptions from", server_url)
     try:
         r = requests.get(server_url, headers=headers)
         if r.status_code == 200:
@@ -313,7 +314,7 @@ if __name__ == "__main__":
     #
     # add_ngsi_attribute(ngsi, id)
     import os
-    os.environ["NGSI_ADDRESS"] = "https://staging.urban-data-mission.mdr.iotcrawler.eu"
+    os.environ["NGSI_ADDRESS"] = "http://155.54.95.248:9090"
 
     test_qoi = {
         "id": "urn:ngsi-ld:QoI:test5",
@@ -329,7 +330,7 @@ if __name__ == "__main__":
         ]
     }
 
-    print(type(test_qoi))
+    # print(type(test_qoi))
     # create_ngsi_entity(test_qoi)
 
     test_qoi_complete = {
@@ -387,6 +388,8 @@ if __name__ == "__main__":
                 }
 
     # patch_ngsi_entity(test_qoi_complete)
-    print(type(test_qoi_complete))
+    # print(type(test_qoi_complete))
     # add_ngsi_attribute(test_qoi_complete, "urn:ngsi-ld:QoI:test6")
-    create_ngsi_entity(test_qoi_complete)
+    # create_ngsi_entity(test_qoi_complete)
+
+    _get_active_subscriptions([])
