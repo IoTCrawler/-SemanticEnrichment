@@ -10,7 +10,7 @@ semantic:
   image:
     repository: gitlab.iotcrawler.net:4567/semantic-enrichment/semanticenrichment/master
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     secrets:
     - name: gitlab-registry-semantic-enrichment-semanticenrichment
   service:
