@@ -24,7 +24,7 @@ def get_active_subscriptions(sublist):
 def _get_active_subscriptions(subscriptions):
     # get old subscriptions for semantic enrichment (starting with 'SE_')
     server_url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/subscriptions/"
-    logger.debug("Get active subscriptions from", server_url)
+    logger.debug("Get active subscriptions from" + server_url)
     try:
         r = requests.get(server_url, headers=headers)
         if r.status_code == 200:
