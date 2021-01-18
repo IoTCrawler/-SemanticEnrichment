@@ -63,10 +63,14 @@ class AbstractMetric(object):
         if enable_na == "False":
             if self.lastValue != 'NA':
                 ngsi['qoi:hasAbsoluteValue'] = {"type": "Property", "value": self.lastValue}
+                if self.unit != 'NA':
+                    ngsi['qoi:hasAbsoluteValue']['unitCode'] = self.unit
             if self.rp.value() != 'NA':
                 ngsi['qoi:hasRatedValue'] = {"type": "Property", "value": self.rp.value()}
         else:
             ngsi['qoi:hasAbsoluteValue'] = {"type": "Property", "value": self.lastValue}
+            if self.unit != 'NA':
+                ngsi['qoi:hasAbsoluteValue']['unitCode'] = self.unit
             ngsi['qoi:hasRatedValue'] = {"type": "Property", "value": self.rp.value()}
 
         for submetric in self.submetrics:

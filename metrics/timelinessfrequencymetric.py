@@ -10,7 +10,7 @@ class TimelinessFrequencyMetric(AbstractMetric):
         self.qoisystem = qoisystem
         self.name = "frequency"
         self.lastUpdate = 'NA'
-        self.unit = "seconds"
+        self.unit = "SEC"   #NGSI-LD unitCode expects unitCodes from table: http://www.unece.org/fileadmin/DAM/cefact/recommendations/rec20/rec20_Rev9e_2014.xls, so SEC for seconds
 
     def update_metric(self, observation):
         current = datetime.datetime.now()

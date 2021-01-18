@@ -9,7 +9,7 @@ class TimelinessAgeMetric(AbstractMetric):
         super(TimelinessAgeMetric, self).__init__(qoisystem)
         self.qoisystem = qoisystem
         self.name = "age"
-        self.unit = "seconds"
+        self.unit = "SEC"   #NGSI-LD unitCode expects unitCodes from table: http://www.unece.org/fileadmin/DAM/cefact/recommendations/rec20/rec20_Rev9e_2014.xls, so SEC for seconds
 
     def update_metric(self, observation):
         time = ngsi_parser.get_observation_timestamp(observation)
