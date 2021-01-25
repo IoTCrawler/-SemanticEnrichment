@@ -1,6 +1,8 @@
 import ast
 import logging
 import threading
+
+from configuration import Config
 from datasource_manager import DatasourceManager
 from ngsi_ld import broker_interface
 from ngsi_ld import ngsi_parser
@@ -61,6 +63,10 @@ class SemanticEnrichment:
                 self.datasource_manager.link_qoi(ngsi_id, qoi_ngsi['id'])
 
                 # save qoi data
+                #TODO delete the delete workaround
+                deleteqoi = Config.get('workaround', 'deleteqoi')
+                if deleteqoi == "True":
+                    broker_interface.de
                 broker_interface.create_ngsi_entity(qoi_ngsi)
                 # save relationship for qoi data
                 broker_interface.add_ngsi_attribute(ngsi, ngsi_id)

@@ -137,6 +137,25 @@ def create_ngsi_entity(ngsi_msg):
     t.start()
 
 
+def delete_and_create_ngsi_entity(ngsi_msg):
+    t = threading.Thread(target=_delete_and_create_ngsi_entity, args=(ngsi_msg,))
+    t.start()
+
+
+def _delete_and_create_ngsi_entity(ngsi_msg):
+    _delete_ngsi_entity(ngsi_msg['id'])
+    _create_ngsi_entity(ngsi_msg)
+
+
+def _delete_ngsi_entity(ngsiId):
+    try:
+        logger.debug("Delete entity with id: " + ngsiId)
+        url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/" + ngsiId
+        r = requests.delete(url, headers=headers)
+    except requests.exceptions.ConnectionError as e:
+        logger.error("Error while deleting ngsi entity" + str(e))
+
+
 def _create_ngsi_entity(ngsi_msg):
     try:
         logger.debug("Save entity to ngsi broker: " + str(ngsi_msg))
@@ -314,6 +333,7 @@ if __name__ == "__main__":
     #
     # add_ngsi_attribute(ngsi, id)
     import os
+
     os.environ["NGSI_ADDRESS"] = "http://155.54.95.248:9090"
 
     test_qoi = {
@@ -334,58 +354,58 @@ if __name__ == "__main__":
     # create_ngsi_entity(test_qoi)
 
     test_qoi_complete = {
-                    "id": "urn:ngsi-ld:QoI:test6",
-                    "type": "qoi:Quality",
-                    "test": {
-                        "type": "Property",
-                        "value": "bla4",
-                    },
-                    "@context": [
-                        "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",
-                        {
-                            "qoi": "https://w3id.org/iot/qoi#"
-                        }
-                    ],
-                    "qoi:plausibility": {
-                        "type": "Property", "value": "NA",
-                        "qoi:hasAbsoluteValue": {
-                            "type": "Property", "value": 1
-                        },
-                        "qoi:hasRatedValue": {
-                            "type": "Property", "value": 1.0
-                        }
-                    },
-                    "qoi:completeness": {
-                        "type": "Property",
-                        "value": "NA",
-                        "qoi:hasAbsoluteValue": {
-                            "type": "Property", "value": 0
-                        },
-                        "qoi:hasRatedValue": {
-                            "type": "Property", "value": 1.0
-                        }
-                    },
-                    "qoi:age": {
-                        "type": "Property",
-                        "value": "NA",
-                        "qoi:hasAbsoluteValue": {
-                            "type": "Property",
-                            "value": 122.907668
-                        }
-                    },
-                    "qoi:frequency": {
-                        "type": "Property",
-                        "value": "NA",
-                        "qoi:hasAbsoluteValue": {
-                            "type": "Property",
-                            "value": 118.558193
-                        },
-                        "qoi:hasRatedValue": {
-                            "type": "Property",
-                            "value": 0.7
-                        }
-                    }
-                }
+        "id": "urn:ngsi-ld:QoI:test6",
+        "type": "qoi:Quality",
+        "test": {
+            "type": "Property",
+            "value": "bla4",
+        },
+        "@context": [
+            "http://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",
+            {
+                "qoi": "https://w3id.org/iot/qoi#"
+            }
+        ],
+        "qoi:plausibility": {
+            "type": "Property", "value": "NA",
+            "qoi:hasAbsoluteValue": {
+                "type": "Property", "value": 1
+            },
+            "qoi:hasRatedValue": {
+                "type": "Property", "value": 1.0
+            }
+        },
+        "qoi:completeness": {
+            "type": "Property",
+            "value": "NA",
+            "qoi:hasAbsoluteValue": {
+                "type": "Property", "value": 0
+            },
+            "qoi:hasRatedValue": {
+                "type": "Property", "value": 1.0
+            }
+        },
+        "qoi:age": {
+            "type": "Property",
+            "value": "NA",
+            "qoi:hasAbsoluteValue": {
+                "type": "Property",
+                "value": 122.907668
+            }
+        },
+        "qoi:frequency": {
+            "type": "Property",
+            "value": "NA",
+            "qoi:hasAbsoluteValue": {
+                "type": "Property",
+                "value": 118.558193
+            },
+            "qoi:hasRatedValue": {
+                "type": "Property",
+                "value": 0.7
+            }
+        }
+    }
 
     # patch_ngsi_entity(test_qoi_complete)
     # print(type(test_qoi_complete))
