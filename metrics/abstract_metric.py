@@ -63,14 +63,16 @@ class AbstractMetric(object):
         if enable_na == "False":
             if self.lastValue != 'NA':
                 ngsi['qoi:hasAbsoluteValue'] = {"type": "Property", "value": self.lastValue}
-                if self.unit != 'NA':
-                    ngsi['qoi:hasAbsoluteValue']['unitCode'] = self.unit
+                #TODO include this as soon as bug is fixed, see: https://github.com/ScorpioBroker/ScorpioBroker/issues/190
+                # if self.unit != 'NA':
+                #     ngsi['qoi:hasAbsoluteValue']['unitCode'] = self.unit
             if self.rp.value() != 'NA':
                 ngsi['qoi:hasRatedValue'] = {"type": "Property", "value": self.rp.value()}
         else:
             ngsi['qoi:hasAbsoluteValue'] = {"type": "Property", "value": self.lastValue}
-            if self.unit != 'NA':
-                ngsi['qoi:hasAbsoluteValue']['unitCode'] = self.unit
+            #TODO include this as soon as bug is fixed, see: https://github.com/ScorpioBroker/ScorpioBroker/issues/190
+            # if self.unit != 'NA':
+            #     ngsi['qoi:hasAbsoluteValue']['unitCode'] = self.unit
             ngsi['qoi:hasRatedValue'] = {"type": "Property", "value": self.rp.value()}
 
         for submetric in self.submetrics:
