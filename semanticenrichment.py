@@ -63,12 +63,7 @@ class SemanticEnrichment:
                 self.datasource_manager.link_qoi(ngsi_id, qoi_ngsi['id'])
 
                 # save qoi data
-                #TODO delete the delete workaround
-                deleteqoi = Config.get('workaround', 'deleteqoi')
-                if deleteqoi == "True":
-                    broker_interface.delete_and_create_ngsi_entity(qoi_ngsi)
-                else:
-                    broker_interface.create_ngsi_entity(qoi_ngsi)
+                broker_interface.create_ngsi_entity(qoi_ngsi)
                 # save relationship for qoi data
                 broker_interface.add_ngsi_attribute(ngsi, ngsi_id)
 
@@ -90,7 +85,12 @@ class SemanticEnrichment:
             logger.debug("Formatting qoi data as ngsi-ld: " + str(qoi_ngsi))
 
             # save qoi data
-            broker_interface.create_ngsi_entity(qoi_ngsi)
+            #TODO delete the delete workaround
+            deleteqoi = Config.get('workaround', 'deleteqoi')
+            if deleteqoi == "True":
+                broker_interface.delete_and_create_ngsi_entity(qoi_ngsi)
+            else:
+                broker_interface.create_ngsi_entity(qoi_ngsi)
         except KeyError:
             logger.error("There is no stream " + str(stream_id) + " found for this observation!")
 
