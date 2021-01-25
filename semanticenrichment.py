@@ -66,8 +66,9 @@ class SemanticEnrichment:
                 #TODO delete the delete workaround
                 deleteqoi = Config.get('workaround', 'deleteqoi')
                 if deleteqoi == "True":
-                    broker_interface.de
-                broker_interface.create_ngsi_entity(qoi_ngsi)
+                    broker_interface.delete_and_create_ngsi_entity(qoi_ngsi)
+                else:
+                    broker_interface.create_ngsi_entity(qoi_ngsi)
                 # save relationship for qoi data
                 broker_interface.add_ngsi_attribute(ngsi, ngsi_id)
 
