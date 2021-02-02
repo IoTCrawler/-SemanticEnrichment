@@ -77,6 +77,11 @@ class SemanticEnrichment:
         # get stream id from observation
         stream_id = ngsi_parser.get_observation_stream(observation)
 
+        if stream_id not in self.qoisystem_map:
+            logger.debug("Stream " + stream_id + " not found, requesting it")
+            stream = broker_interface.get_entity(stream_id)
+            self.notify_datasource(stream)
+
         try:
             self.qoisystem_map[stream_id].update(observation)
 
