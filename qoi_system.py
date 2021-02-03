@@ -7,6 +7,7 @@ from metrics.plausibilitymetric import PlausibilityMetric
 from metrics.timelinessagemmetric import TimelinessAgeMetric
 from metrics.timelinessfrequencymetric import TimelinessFrequencyMetric
 from ngsi_ld import ngsi_parser, broker_interface
+from configuration import Config
 
 
 class QoiSystem:
@@ -65,7 +66,17 @@ class QoiSystem:
     def timer_update(self):
         for m in self.metrics:
             m.timer_update_metric()
-        broker_interface.create_ngsi_entity(self.get_qoivector_ngsi())   # save updated qoi to MDR
+
+        # broker_interface.create_ngsi_entity(self.get_qoivector_ngsi())
+
+        # save updated qoi to MDR
+        #TODO delete the delete workaround
+        deleteqoi = Config.get('workaround', 'deleteqoi')
+        if deleteqoi == "True":
+            broker_interface.delete_and_create_ngsi_entity(self.get_qoivector_ngsi())
+        else:
+            broker_interface.create_ngsi_entity(self.get_qoivector_ngsi())
+
         self.start_timer()
 
     # iterate through all metrics to get qoi vector
