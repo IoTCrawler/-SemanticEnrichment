@@ -24,6 +24,7 @@ class QoiSystem:
         self.add_metric(TimelinessFrequencyMetric(self))
         self.add_metric(ArtificialityMetric(self))
         self.timer = None
+        self.start_timer()
 
     def cancel_timer(self):
         if isinstance(self.timer, threading.Timer):
