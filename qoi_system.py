@@ -39,7 +39,7 @@ class QoiSystem:
         # print("init qoi system with", self.streamid, "with sensor", sensor)
         if sensor:
             updateinterval, unit = ngsi_parser.get_sensor_updateinterval_and_unit(sensor)
-            logger.debug("qoi system for " + self.streamid + " starts timer with " + updateinterval + " interval")
+            logger.debug("qoi system for " + self.streamid + " starts timer with " + str(updateinterval) + " interval")
             if updateinterval:
                 if self.is_number(updateinterval):
                     updateinterval = float(updateinterval)
