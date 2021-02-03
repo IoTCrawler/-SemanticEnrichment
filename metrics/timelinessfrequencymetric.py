@@ -9,7 +9,7 @@ class TimelinessFrequencyMetric(AbstractMetric):
         super(TimelinessFrequencyMetric, self).__init__(qoisystem)
         self.qoisystem = qoisystem
         self.name = "frequency"
-        self.lastUpdate = 'NA'
+        self.lastUpdate = datetime.datetime.now()   #'NA' # TODO NA has been replaced to enable Frequency also for data sources that have not sent any Observation yet
         self.unit = "HTZ"   #NGSI-LD unitCode expects unitCodes from table: http://www.unece.org/fileadmin/DAM/cefact/recommendations/rec20/rec20_Rev9e_2014.xls, so HTZ for hertz
 
     def update_metric(self, observation):
