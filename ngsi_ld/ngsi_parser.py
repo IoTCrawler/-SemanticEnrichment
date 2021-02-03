@@ -210,4 +210,4 @@ def update_stream_hasQuality(stream, qoiId):
                 }
             ]
         }
-    stream.update(hasQoi_ngsi)
+        stream.update(hasQoi_ngsi)

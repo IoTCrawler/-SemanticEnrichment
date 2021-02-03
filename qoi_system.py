@@ -1,4 +1,5 @@
 import threading
+import logging
 
 from metrics.artificiality import ArtificialityMetric
 from metrics.completenessmetric import CompletenessMetric
@@ -9,6 +10,7 @@ from metrics.timelinessfrequencymetric import TimelinessFrequencyMetric
 from ngsi_ld import ngsi_parser, broker_interface
 from configuration import Config
 
+logger = logging.getLogger('semanticenrichment')
 
 class QoiSystem:
 
@@ -34,8 +36,10 @@ class QoiSystem:
     def start_timer(self):
         # start timer for update interval + 10%
         sensor = self.get_sensor()
+        # print("init qoi system with", self.streamid, "with sensor", sensor)
         if sensor:
             updateinterval, unit = ngsi_parser.get_sensor_updateinterval_and_unit(sensor)
+            logger.debug("qoi system for " + self.streamid + " starts timer with " + updateinterval + " interval")
             if updateinterval:
                 if self.is_number(updateinterval):
                     updateinterval = float(updateinterval)
@@ -65,6 +69,7 @@ class QoiSystem:
         self.start_timer()
 
     def timer_update(self):
+        logger.debug("timer update for " + self.streamid)
         for m in self.metrics:
             m.timer_update_metric()
 

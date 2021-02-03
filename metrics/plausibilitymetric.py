@@ -1,7 +1,9 @@
+import logging
 import re
 from metrics.abstract_metric import AbstractMetric
 from ngsi_ld import ngsi_parser
 
+logger = logging.getLogger('semanticenrichment')
 
 class PlausibilityMetric(AbstractMetric):
 
@@ -29,7 +31,10 @@ class PlausibilityMetric(AbstractMetric):
             if datatype:
                 if datatype != 'NA':
                     if datatype.lower() in ['int', 'integer', 'double', 'float']:
-                        self.handle_number(value, sensor)
+                        try:
+                            self.handle_number(float(value), sensor)
+                        except:
+                            logger.error("Cannot cast value to annotated type " + datatype)
                     elif datatype.lower() in ['str', 'string']:
                         self.handle_string(value, sensor)
                 elif self.is_number(value):
@@ -51,12 +56,14 @@ class PlausibilityMetric(AbstractMetric):
 
 
     def handle_number(self, value, sensor):
+
+
         # add error handling if min/max are not in stream
         minvalue = ngsi_parser.get_sensor_min(sensor)
-        if not minvalue  or (minvalue == 'NA'):
+        if not minvalue or (minvalue == 'NA'):
             minvalue = self.qoisystem.getStoredMetadata('min')
         maxvalue = ngsi_parser.get_sensor_max(sensor)
-        if not maxvalue  or (maxvalue == 'NA'):
+        if not maxvalue or (maxvalue == 'NA'):
             maxvalue = self.qoisystem.getStoredMetadata('max')
 
         # check annotated dummy min/max value
