@@ -93,8 +93,10 @@ class SemanticEnrichment:
             #TODO delete the delete workaround
             deleteqoi = Config.get('workaround', 'deleteqoi')
             if deleteqoi == "True":
+                logger.debug("incoming observation for " + observation['id'] + " called, delete before updating/creating it")
                 broker_interface.delete_and_create_ngsi_entity(qoi_ngsi)
             else:
+                logger.debug("incoming observation for " + observation['id'] + " called, dont delete before updating/creating it")
                 broker_interface.create_ngsi_entity(qoi_ngsi)
         except KeyError:
             logger.error("There is no stream " + str(stream_id) + " found for this observation!")

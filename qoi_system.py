@@ -79,8 +79,10 @@ class QoiSystem:
         #TODO delete the delete workaround
         deleteqoi = Config.get('workaround', 'deleteqoi')
         if deleteqoi == "True":
+            logger.debug("timer update for " + self.streamid + " called, delete before updating/creating it")
             broker_interface.delete_and_create_ngsi_entity(self.get_qoivector_ngsi())
         else:
+            logger.debug("timer update for " + self.streamid + " called, dont delete before updating/creating it")
             broker_interface.create_ngsi_entity(self.get_qoivector_ngsi())
 
         self.start_timer()
