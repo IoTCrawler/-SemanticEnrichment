@@ -21,8 +21,20 @@ class TimelinessFrequencyMetric(AbstractMetric):
             if sensor:
 
                 updateinterval, unit = ngsi_parser.get_sensor_updateinterval_and_unit(sensor)
-                if updateinterval and unit:
-                    if unit in ("s", "seconds"):
+                if updateinterval:
+                    if unit:
+                        if unit in ("s", "seconds"):
+                            diff = (current - self.lastUpdate).total_seconds()
+                            self.lastUpdate = current
+                            if diff > float(updateinterval):
+                                self.rp.update(0)
+                            else:
+                                self.rp.update(1)
+                            self.lastValue = diff
+                        else:
+                            self.logger.debug("Unit not supported for frequency metric:" + updateinterval)
+                            self.lastValue = "NA"
+                    else:       #assume seconds as defalt if no unit is set
                         diff = (current - self.lastUpdate).total_seconds()
                         self.lastUpdate = current
                         if diff > float(updateinterval):
@@ -30,9 +42,6 @@ class TimelinessFrequencyMetric(AbstractMetric):
                         else:
                             self.rp.update(1)
                         self.lastValue = diff
-                    else:
-                        self.logger.debug("Unit not supported for frequency metric:" + updateinterval)
-                        self.lastValue = "NA"
 
     def timer_update_metric(self):
         if self.lastUpdate != 'NA':
