@@ -88,8 +88,10 @@ def get_observation_resulttime(observation):
         except (TypeError, KeyError, dateutil.parser.ParserError):
             return None
 
+
 def is_imputedObservation(observation):
     return 'http://www.fault-detection.de/hasImputedResult' in observation
+
 
 def get_id(ngsi_data):
     try:
@@ -124,6 +126,7 @@ def get_sensor_max(sensor):
         except KeyError:
             return None
 
+
 def get_sensor_regexp(sensor):
     try:
         return sensor['qoi:regexp']['value']
@@ -132,6 +135,7 @@ def get_sensor_regexp(sensor):
             return sensor['https://w3id.org/iot/qoi#regexp']['value']
         except KeyError:
             return None
+
 
 def get_sensor_valuetype(sensor):
     try:
@@ -144,14 +148,27 @@ def get_sensor_valuetype(sensor):
 
 
 def get_sensor_updateinterval_and_unit(sensor):
+    return get_sensor_updateinterval(sensor), get_sensor_updateinterval_unit(sensor)
+
+
+def get_sensor_updateinterval_unit(sensor):
     try:
-        return sensor['qoi:updateinterval']['value'], sensor['qoi:updateinterval']['qoi:unit']['value']
+        return sensor['qoi:updateinterval']['qoi:unit']['value']
     except KeyError:
         try:
-            return sensor['https://w3id.org/iot/qoi#updateinterval']['value'], \
-                   sensor['https://w3id.org/iot/qoi#updateinterval']['https://w3id.org/iot/qoi#unit']['value']
+            return sensor['https://w3id.org/iot/qoi#updateinterval']['https://w3id.org/iot/qoi#unit']['value']
         except KeyError:
-            return None, None
+            return None
+
+
+def get_sensor_updateinterval(sensor):
+    try:
+        return sensor['qoi:updateinterval']['value']
+    except KeyError:
+        try:
+            return sensor['https://w3id.org/iot/qoi#updateinterval']['value']
+        except KeyError:
+            return None
 
 
 def get_sensor_observes(sensor):
@@ -192,6 +209,7 @@ def get_obsproperty_label(obsproperty):
             return obsproperty['http://www.w3.org/2000/01/rdf-schema#label']['value']
         except KeyError:
             return None
+
 
 def update_stream_hasQuality(stream, qoiId):
     if 'hasQuality' in stream:
