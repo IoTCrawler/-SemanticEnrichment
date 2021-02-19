@@ -125,9 +125,12 @@ def _add_ngsi_attribute(ngsi_msg, eid):
         logger.debug("Add ngsi attribute to entity " + eid + ":" + str(ngsi_msg))
         url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/" + eid + "/attrs"
         r = requests.post(url, json=ngsi_msg, headers=headers)
+        logger.debug("add_ngsi_attribute result: " + str(r.status_code))
         if r.status_code not in (204, 207):
             logger.debug("Attribute exists, patch it")
-            requests.patch(url, json=ngsi_msg, headers=headers)
+            r = requests.patch(url, json=ngsi_msg, headers=headers)
+            logger.debug("patch result: " + str(r.status_code))
+        logger.error("Error while adding attribute to ngsi entity" + str(e))
     except requests.exceptions.ConnectionError as e:
         logger.error("Error while adding attribute to ngsi entity" + str(e))
 

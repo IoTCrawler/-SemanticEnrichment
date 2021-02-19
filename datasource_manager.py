@@ -76,6 +76,7 @@ class DatasourceManager:
         try:
             stream = self.streams[stream_id]
             ngsi_parser.update_stream_hasQuality(stream, qoi_id)
+            self.streams[stream_id] = stream
         except KeyError:
             pass
 
