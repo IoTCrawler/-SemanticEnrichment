@@ -31,8 +31,8 @@ class DatasourceManager:
             self.observations.pop(observationId)
 
         #TODO dont delete observable property as might be used by multiple streams?
-        if observablePropertyId in self.observableproperties:
-            self.observableproperties.pop(observablePropertyId)
+        # if observablePropertyId in self.observableproperties:
+        #     self.observableproperties.pop(observablePropertyId)
 
 
     def clear(self):
