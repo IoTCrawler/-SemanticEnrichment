@@ -34,6 +34,19 @@ class SemanticEnrichment:
             logger.debug("Notifiy existing stream " + ngsi_parser.get_id(stream))
             self.notify_datasource(stream)
 
+    def clear(self):
+        self.datasource_manager.clear()
+        self.qoisystem_map.clear()
+
+    def clearAndInitalise(self):
+        self.clear()
+        self.initialise()
+
+    def del_stream(self, streamId):
+        del self.qoisystem_map[streamId]
+        self.datasource_manager.delete_stream(streamId)
+
+
     def notify_datasource(self, ngsi_data):
         ngsi_id, ngsi_type = ngsi_parser.get_IDandType(ngsi_data)
         # Save data locally, instantiate subscriptions
@@ -43,6 +56,8 @@ class SemanticEnrichment:
         if ngsi_type is NGSI_Type.IoTStream:
             if ngsi_id not in self.qoisystem_map:
                 self.qoisystem_map[ngsi_id] = QoiSystem(ngsi_id, self.datasource_manager)
+
+            if ngsi_parser.get_stream_hasQuality(ngsi_data) is None:
 
                 qoi_ngsi = self.qoisystem_map[ngsi_id].get_qoivector_ngsi()
                 logger.debug("Formatting qoi data as ngsi-ld: " + str(qoi_ngsi))
@@ -59,6 +74,7 @@ class SemanticEnrichment:
                         }
                     ]
                 }
+
                 # update locally
                 self.datasource_manager.link_qoi(ngsi_id, qoi_ngsi['id'])
 

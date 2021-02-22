@@ -28,6 +28,10 @@ class QoiSystem:
         self.timer = None
         self.start_timer()
 
+    def __del__(self):
+        self.cancel_timer()
+        self.metrics.clear()
+
     def cancel_timer(self):
         if isinstance(self.timer, threading.Timer):
             self.timer.cancel()

@@ -130,7 +130,6 @@ def _add_ngsi_attribute(ngsi_msg, eid):
             logger.debug("Attribute exists, patch it")
             r = requests.patch(url, json=ngsi_msg, headers=headers)
             logger.debug("patch result: " + str(r.status_code))
-        logger.error("Error while adding attribute to ngsi entity" + str(e))
     except requests.exceptions.ConnectionError as e:
         logger.error("Error while adding attribute to ngsi entity" + str(e))
 

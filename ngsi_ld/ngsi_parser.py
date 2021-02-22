@@ -211,6 +211,16 @@ def get_obsproperty_label(obsproperty):
             return None
 
 
+def get_stream_hasQuality(stream):
+    try:
+        return stream['hasQuality']['object']
+    except KeyError:
+        try:
+            return stream['https://w3id.org/iot/qoi#hasQuality']['object']
+        except KeyError:
+            return None
+
+
 def update_stream_hasQuality(stream, qoiId):
     if 'hasQuality' in stream:
         stream['hasQuality']['object'] = qoiId

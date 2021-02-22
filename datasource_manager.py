@@ -19,6 +19,31 @@ class DatasourceManager:
 
         self.matcher = MetadataMatcher()
 
+    def delete_stream(self, stream_id):
+        if stream_id in self.streams:
+            stream = self.streams.pop(stream_id)
+        sensorId = ngsi_parser.get_stream_generatedBy(stream)
+        if sensorId in self.sensors:
+            sensor = self.sensors.pop(sensorId)
+        observationId = ngsi_parser.get_sensor_madeObservation(sensor)
+        observablePropertyId = ngsi_parser.get_sensor_observes(sensor)
+        if observationId in self.observations:
+            self.observations.pop(observationId)
+
+        #TODO dont delete observable property as might be used by multiple streams?
+        if observablePropertyId in self.observableproperties:
+            self.observableproperties.pop(observablePropertyId)
+
+
+    def clear(self):
+        #delete subscription
+        self.del_all_subscriptions()
+        self.streams.clear()
+        self.sensors.clear()
+        self.observations.clear()
+        self.observableproperties.clear()
+
+
     def update(self, ngsi_type, ngsi_id, ngsi_data):
         # check type
         if ngsi_type is NGSI_Type.IoTStream:

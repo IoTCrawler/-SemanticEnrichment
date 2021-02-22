@@ -105,6 +105,13 @@ def deleteallsubscriptions():
     semanticEnrichment.datasource_manager.del_all_subscriptions()
     return redirect(url_for('.showsubscriptions'))
 
+
+@bp.route('/resetse', methods=['POST'])
+def resetSemanticEnrichment():
+    semanticEnrichment.clearAndInitalise()
+    return redirect(url_for('.index'))
+
+
 @bp.route('/deletesubscription', methods=['POST'])
 def deletesubscription():
     subid = request.form.get('subid')
@@ -113,6 +120,14 @@ def deletesubscription():
         semanticEnrichment.del_subscription(subid)
     return redirect(url_for('.showsubscriptions'))
 
+
+@bp.route('/deletestream', methods=['POST'])
+def deletestream():
+    streamid = request.form.get('streamid')
+    if streamid is not None:
+        logger.info("Delete stream with all it dependencies: " + streamid)
+        semanticEnrichment.del_stream(streamid)
+    return redirect(url_for('.showdatasources'))
 
 @bp.route('/showdatasources', methods=['GET'])
 def showdatasources():

@@ -14,6 +14,7 @@
     <thead>
         <tr>
             <th>ID</th>
+            <th>Delete</th>
             <th>Last Update</th>
             <th>Stream</th>
             <th>QoI</th>
@@ -24,7 +25,8 @@
     </thead>
     <tbody>
     {% for ds in datasources %}
-    <tr><td style="word-break:break-all;">{{ ds.stream_id}}</td><td>{{ ds.observedat|datetime }}</td><td>{{ ds.stream }}</td><td>{{ ds.qoi }}</td><td>{{ ds.sensor}}</td><td>{{ ds.obsproperty}}</td><td>{{ ds.observation}}</td></tr>
+    <tr><td style="word-break:break-all;">{{ ds.stream_id}}</td><td><form action="deletestream" method="POST"><button type="submit" name="streamid" value={{ ds.stream_id }}>Delete</button></form>
+        <td>{{ ds.observedat|datetime }}</td><td>{{ ds.stream }}</td><td>{{ ds.qoi }}</td><td>{{ ds.sensor}}</td><td>{{ ds.obsproperty}}</td><td>{{ ds.observation}}</td></tr>
     {% endfor %}
     </tbody>
 </table>
