@@ -36,6 +36,8 @@ class SemanticEnrichment:
 
     def clear(self):
         self.datasource_manager.clear()
+        for key, value in self.qoisystem_map.items():
+            value.cancel_timer()
         self.qoisystem_map.clear()
 
     def clearAndInitalise(self):
@@ -43,6 +45,7 @@ class SemanticEnrichment:
         self.initialise()
 
     def del_stream(self, streamId):
+        self.qoisystem_map[streamId].cancel_timer()
         del self.qoisystem_map[streamId]
         self.datasource_manager.delete_stream(streamId)
 

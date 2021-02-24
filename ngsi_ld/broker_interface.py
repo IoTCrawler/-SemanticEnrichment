@@ -26,7 +26,7 @@ def _get_active_subscriptions(subscriptions):
     server_url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/subscriptions/"
     logger.debug("Get active subscriptions from" + server_url)
     try:
-        r = requests.get(server_url, headers=headers)
+        r = requests.get(server_url, headers=headers, timeout=float(Config.get('semanticenrichment', 'timeout')))
         if r.status_code == 200:
             if isinstance(r.json(), list):
                 for data in r.json():
@@ -35,6 +35,8 @@ def _get_active_subscriptions(subscriptions):
                 handlejsonsubscription(r.json(), Config.getEnvironmentVariable('NGSI_ADDRESS'), subscriptions)
         else:
             logger.error("Error getting active subscriptions: " + r.text + str(r.status_code))
+    except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
+        logger.error("Exception getting active subscriptions: " + str(e))
     except Exception as e:
         logger.error("Error getting active subscriptions: " + str(e))
 
@@ -94,13 +96,16 @@ def _add_subscription(subscription, subscriptions):
 
 
 def ngsi_add_subscription(subscription):
-    server_url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/subscriptions/"
-    r = requests.post(server_url, json=subscription, headers=headers)
-    logger.info("Adding subscription: " + str(r.status_code) + " " + r.text)
-    if r.status_code != 201:
-        logger.debug("error creating subscription: " + r.text)
-        return None
-    return r.text
+    try:
+        server_url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/subscriptions/"
+        r = requests.post(server_url, json=subscription, headers=headers, timeout=float(Config.get('semanticenrichment', 'timeout')))
+        logger.info("Adding subscription: " + str(r.status_code) + " " + r.text)
+        if r.status_code != 201:
+            logger.debug("error creating subscription: " + r.text)
+            return None
+        return r.text
+    except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
+        logger.error("Exception while adding subscription: " + str(e))
 
 
 def del_subscription(subscription):
@@ -109,10 +114,13 @@ def del_subscription(subscription):
 
 
 def _del_subscription(subscription):
-    server_url = subscription.address + "/ngsi-ld/v1/subscriptions/"
-    server_url = server_url + subscription.id
-    r = requests.delete(server_url, headers=headers)
-    logger.debug("deleting subscription " + subscription.id + ": " + r.text)
+    try:
+        server_url = subscription.address + "/ngsi-ld/v1/subscriptions/"
+        server_url = server_url + subscription.id
+        r = requests.delete(server_url, headers=headers, timeout=float(Config.get('semanticenrichment', 'timeout')))
+        logger.debug("deleting subscription " + subscription.id + ": " + r.text)
+    except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
+        logger.error("Exception while deleting subscription: " + str(e))
 
 
 def add_ngsi_attribute(ngsi_msg, eid):
@@ -124,14 +132,14 @@ def _add_ngsi_attribute(ngsi_msg, eid):
     try:
         logger.debug("Add ngsi attribute to entity " + eid + ":" + str(ngsi_msg))
         url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/" + eid + "/attrs"
-        r = requests.post(url, json=ngsi_msg, headers=headers)
+        r = requests.post(url, json=ngsi_msg, headers=headers, timeout=float(Config.get('semanticenrichment', 'timeout')))
         logger.debug("add_ngsi_attribute result: " + str(r.status_code))
         if r.status_code not in (204, 207):
             logger.debug("Attribute exists, patch it")
-            r = requests.patch(url, json=ngsi_msg, headers=headers)
+            r = requests.patch(url, json=ngsi_msg, headers=headers, timeout=float(Config.get('semanticenrichment', 'timeout')))
             logger.debug("patch result: " + str(r.status_code))
-    except requests.exceptions.ConnectionError as e:
-        logger.error("Error while adding attribute to ngsi entity" + str(e))
+    except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
+        logger.error("Exception while adding attribute: " + str(e))
 
 
 def create_ngsi_entity(ngsi_msg):
@@ -153,21 +161,21 @@ def _delete_ngsi_entity(ngsiId):
     try:
         logger.debug("Delete entity with id: " + ngsiId)
         url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/" + ngsiId
-        r = requests.delete(url, headers=headers)
-    except requests.exceptions.ConnectionError as e:
-        logger.error("Error while deleting ngsi entity" + str(e))
+        r = requests.delete(url, headers=headers, timeout=float(Config.get('semanticenrichment', 'timeout')))
+    except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
+        logger.error("Exception while deleting entity: " + str(e))
 
 
 def _create_ngsi_entity(ngsi_msg):
     try:
         logger.debug("Save entity to ngsi broker: " + str(ngsi_msg))
         url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/"
-        r = requests.post(url, json=ngsi_msg, headers=headers)
+        r = requests.post(url, json=ngsi_msg, headers=headers, timeout=float(Config.get('semanticenrichment', 'timeout')))
         if r.status_code == 409:
             logger.debug("Entity exists, try to update/add attributes")
             _add_ngsi_attribute(ngsi_msg, ngsi_msg['id'])
-    except requests.exceptions.ConnectionError as e:
-        logger.error("Error while creating ngsi entity" + str(e))
+    except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
+        logger.error("Exception while creating entity: " + str(e))
 
 
 # def patch_ngsi_entity(ngsi_msg):
@@ -200,26 +208,26 @@ def _get_entity_updateList(entityid, entitylist):
 def get_entity(entitiyid):
     try:
         url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/" + entitiyid
-        r = requests.get(url, headers=headers)
+        r = requests.get(url, headers=headers, timeout=float(Config.get('semanticenrichment', 'timeout')))
         if r.status_code != 200:
             logger.error("Error requesting entity " + entitiyid + ": " + r.text)
             return None
         return r.json()
-    except requests.exceptions.ConnectionError as e:
-        logger.error("Error while getting entity " + entitiyid + ": " + str(e))
+    except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
+        logger.error("Exception while getting entity: " + str(e))
 
 
 def get_entities(entitytype, limit, offset):
     try:
         url = Config.getEnvironmentVariable('NGSI_ADDRESS') + "/ngsi-ld/v1/entities/"
         params = {'type': entitytype, 'limit': limit, 'offset': offset}
-        r = requests.get(url, headers=headers, params=params)
+        r = requests.get(url, headers=headers, params=params, timeout=float(Config.get('semanticenrichment', 'timeout')))
         if r.status_code != 200:
             logger.error("Error requesting entities of type " + entitytype + ": " + r.text)
             return None
         return r.json()
-    except requests.exceptions.ConnectionError as e:
-        logger.error("Error while getting entities of type " + entitytype + ": " + str(e))
+    except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
+        logger.error("Exception while getting entities: " + str(e))
 
 
 def get_all_entities(entitytype):
