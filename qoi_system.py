@@ -36,6 +36,7 @@ class QoiSystem:
         if isinstance(self.timer, threading.Timer):
             self.timer.cancel()
             self.timer = None
+            logger.debug("qoi system for " + self.streamid + " canceled timer")
 
     def start_timer(self):
         # start timer for update interval + 10%

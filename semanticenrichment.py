@@ -1,4 +1,5 @@
 import ast
+import datetime
 import logging
 import threading
 
@@ -52,6 +53,27 @@ class SemanticEnrichment:
 
     def notify_datasource(self, ngsi_data):
         ngsi_id, ngsi_type = ngsi_parser.get_IDandType(ngsi_data)
+
+        #first check if observation is an old one, if yes return
+        if ngsi_type is NGSI_Type.StreamObservation:
+            #TODO observation id has to be non existent or the result time has to be newer
+            oldObservation = self.datasource_manager.get_observation(ngsi_id)
+            if oldObservation:
+                oldTime = ngsi_parser.get_observation_timestamp(oldObservation)
+                newTime = ngsi_parser.get_observation_timestamp(ngsi_data)
+
+                #check if new time is newer as old time, if yes it is a new observation, if not it might be update e.g. by monitoring and can be ignored
+                if (oldTime is not None) and (newTime is not None):
+                    if datetime.datetime.fromtimestamp(newTime) > datetime.datetime.fromtimestamp(oldTime):
+                        logger.debug("Received observation with newer timestamp with id " + ngsi_id + ", process it")
+                    else:
+                        logger.debug("Received observation with id " + ngsi_id + " again, ignore it")
+                        return
+            else:
+                logger.debug("Received new observation with id " + ngsi_id + ", process it")
+
+
+
         # Save data locally, instantiate subscriptions
         self.datasource_manager.update(ngsi_type, ngsi_id, ngsi_data)
 
@@ -88,9 +110,13 @@ class SemanticEnrichment:
 
         # if incoming data is observation we have to update QoI
         elif ngsi_type is NGSI_Type.StreamObservation:
-            #TODO check if observation has imputed flag, if yes discard it
-            if not ngsi_parser.is_imputedObservation(ngsi_data):
-                self.receive(ngsi_data)
+
+            #TODO this does not work anymore due to updates inside monitoring
+            # #TODO check if observation has imputed flag, if yes discard it
+            # if not ngsi_parser.is_imputedObservation(ngsi_data):
+            #     self.receive(ngsi_data)
+            self.receive(ngsi_data)
+
 
     def receive(self, observation):
         # get stream id from observation
