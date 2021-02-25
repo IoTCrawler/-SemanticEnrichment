@@ -125,6 +125,9 @@ class SemanticEnrichment:
         if stream_id not in self.qoisystem_map:
             logger.debug("Stream " + stream_id + " not found, requesting it")
             stream = broker_interface.get_entity(stream_id)
+            if stream is None:  #without stream we cannot relate observation
+                print("no stream found")
+                return
             self.notify_datasource(stream)
 
         try:

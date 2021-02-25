@@ -139,12 +139,11 @@ class DatasourceManager:
             observableProperty = self.get_observableproperty(observablePropertyId)
             if observableProperty:
                 observedType = ngsi_parser.get_obsproperty_label(observableProperty)
-
                 if observedType:
                     metadata = self.matcher.match(observedType)
                     if metadata:
                         try:
-                            return metadata['metadata'][field]
+                            return metadata[field]
                         except KeyError:
                             return None
         return None
